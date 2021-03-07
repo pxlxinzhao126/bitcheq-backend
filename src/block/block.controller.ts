@@ -3,10 +3,10 @@ import { BlockService } from './block.service';
 
 @Controller('block')
 export class BlockController {
-    constructor(private blockService: BlockService){}
+  constructor(private blockService: BlockService) {}
 
-    @Get('new')
-    async getNewAddress() {
-        return await this.blockService.getNewAddress();
-    }
+  @Get('new')
+  async getNewAddress() {
+    return await this.blockService.getNewAddress();
+  }
 }

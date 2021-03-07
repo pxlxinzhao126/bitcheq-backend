@@ -5,13 +5,13 @@ const API_KEY = '1886-c8a8-6818-3b4b';
 
 @Injectable()
 export class BlockService {
-    block: BlockIo;
+  block: BlockIo;
 
-    constructor() {
-        this.block = new BlockIo(API_KEY);
-    }
+  constructor() {
+    this.block = new BlockIo(API_KEY);
+  }
 
-    /** 
+  /** 
      * Sample Response
      * {
             "status": "success",
@@ -23,7 +23,7 @@ export class BlockService {
             }
         }
     */
-    async getNewAddress() {
-        return await this.block.get_new_address();
-    }
+  async getNewAddress() {
+    return await this.block.get_new_address();
+  }
 }
