@@ -20,6 +20,10 @@ export class AddressService {
     return this.addressModel.find().exec();
   }
 
+  async findOneByAddress(address: string): Promise<Address> {
+    return this.addressModel.findOne({ address }).exec();
+  }
+
   async findUnusedAddress(owner: string): Promise<Address> {
     return this.addressModel.findOne({ owner, used: false }).exec();
   }

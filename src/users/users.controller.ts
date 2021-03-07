@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Post,
+  Query,
 } from '@nestjs/common';
 import { UserDto } from './users.dto';
 import { UsersService } from './users.service';
@@ -21,11 +23,15 @@ export class UsersController {
       );
     }
 
-    if (!!(await this.userService.findOne(userDto.username))) {
+    if (!!(await this.userService.findOneByName(userDto.username))) {
       throw new HttpException('Username taken', HttpStatus.BAD_REQUEST);
     }
 
-    const user = await this.userService.create(userDto);
-    return `created user ${userDto.username}`;
+    return this.userService.mapUserToReturn(await this.userService.create(userDto));
+  }
+
+  @Get()
+  async getUserByName(@Query('username') username) {
+    return this.userService.mapUserToReturn(await this.userService.findOneByName(username));
   }
 }
