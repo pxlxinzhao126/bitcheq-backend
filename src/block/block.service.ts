@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as BlockIo from 'block_io';
+import { UsersService } from 'src/users/users.service';
 
 const API_KEY = '1886-c8a8-6818-3b4b';
 
@@ -7,7 +8,7 @@ const API_KEY = '1886-c8a8-6818-3b4b';
 export class BlockService {
   block: BlockIo;
 
-  constructor() {
+  constructor(private userService: UsersService) {
     this.block = new BlockIo(API_KEY);
   }
 
@@ -23,7 +24,16 @@ export class BlockService {
             }
         }
     */
-  async getNewAddress() {
-    return await this.block.get_new_address();
+  async getNewAddress(username: string) {
+    const user = await this.userService.findOne(username);
+    if (user) {
+      const newAddress = await this.block.get_new_address();
+      await this.userService.addAddress(username, newAddress.data.address);
+    } else {
+      throw new HttpException(
+        'Username does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 }

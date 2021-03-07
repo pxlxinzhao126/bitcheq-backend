@@ -9,9 +9,8 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const createdCat = new this.userModel(createUserDto);
-    return createdCat.save();
-
+    const createdUser = new this.userModel(createUserDto);
+    return createdUser.save();
   }
 
   async findAll(): Promise<User[]> {
@@ -20,5 +19,12 @@ export class UsersService {
 
   async findOne(username: string): Promise<User> {
     return this.userModel.findOne({ username }).exec();
+  }
+
+  async addAddress(username: string, address: string): Promise<User> {
+    return this.userModel.findOneAndUpdate(
+      { username },
+      { $addToSet: { addresses: { address, used: false}} },
+    );
   }
 }
