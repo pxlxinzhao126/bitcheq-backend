@@ -13,14 +13,18 @@ import { BlockService } from './block.service';
 export class BlockController {
   constructor(private blockService: BlockService) {}
 
-  @Get('new')
-  async getNewAddress(@Query('username') username) {
+  @Get('address')
+  async getAddress(@Query('username') username) {
     if (username) {
-      return await this.blockService.getNewAddress(username);
+      return await this.blockService.getUserAddress(username);
     }
     throw new HttpException('username is required', HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * Existing Account Notification Id 3493a5e76693c2e9c20c75df
+   * this.block.create_notification({ type: 'account', url: 'http://898191d27b2f.ngrok.io/block/webhook' });
+  */
   @Post('webhook')
   handleWebhook(@Body() webhook_response) {
     this.blockService.writeTransaction(webhook_response);

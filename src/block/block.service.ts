@@ -1,50 +1,54 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as BlockIo from 'block_io';
+import { AddressService } from 'src/address/address.service';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { UsersService } from 'src/users/users.service';
 
-const API_KEY = '1886-c8a8-6818-3b4b';
+const BTC_TESTNET_API_KEY = '1886-c8a8-6818-3b4b';
 
 @Injectable()
 export class BlockService {
   block: BlockIo;
 
-  /**
-   * Existing Account Notification Id 3493a5e76693c2e9c20c75df
-   * this.block.create_notification({ type: 'account', url: 'http://898191d27b2f.ngrok.io/block/webhook' });
-   */
   constructor(
     private userService: UsersService,
     private transactionService: TransactionService,
+    private addressService: AddressService
   ) {
-    this.block = new BlockIo(API_KEY);
+    this.block = new BlockIo(BTC_TESTNET_API_KEY);
   }
 
-  /** 
-     * Sample Response
-     * {
-            "status": "success",
-            "data": {
-                "network": "BTCTEST",
-                "user_id": 2,
-                "address": "2Mt4zyvxrCED7DixGM8t8xauKD3j9NcrrDV",
-                "label": "ngeji22"
-            }
-        }
-    */
-  async getNewAddress(username: string) {
-    const user = await this.userService.findOne(username);
-    if (user) {
-      const newAddress = await this.block.get_new_address({
-        label: username + '-' + new Date().getTime(),
-      });
-      return newAddress;
+  async getUserAddress(username: string) {
+    if (this.userExists(username)) {
+      const unusedAddress = await this.findUnusedAddress(username);
+      if (unusedAddress) {
+        return unusedAddress;
+      } else {
+        const newAddress = await this.createNewAddress(username);
+        return newAddress;
+      }
     } else {
-      throw new HttpException(
-        'Username does not exist',
-        HttpStatus.BAD_REQUEST,
-      );
+      this.userDoesNotExist();
     }
+  }
+
+  async userExists(username: string) {
+    return !!(await this.userService.findOne(username));
+  }
+
+  async findUnusedAddress(username) {
+    return await this.addressService.findUnusedAddress(username);
+  }
+
+  async createNewAddress(username: string) {
+    const newAddress = await this.block.get_new_address({
+      label: username + '-' + new Date().getTime(),
+    });
+    this.addressService.create({
+      owner: username,
+      used: false,
+      ...newAddress.data
+    });
   }
 
   async writeTransaction(webhook_response) {
@@ -55,5 +59,12 @@ export class BlockService {
     ) {
       this.transactionService.create(webhook_response.data);
     }
+  }
+
+  userDoesNotExist() {
+    throw new HttpException(
+      'Username does not exist',
+      HttpStatus.BAD_REQUEST,
+    );
   }
 }

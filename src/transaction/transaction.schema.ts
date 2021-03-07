@@ -8,25 +8,25 @@ export class Transaction {
   @Prop({ required: true })
   txid: string;
 
-  @Prop()
+  @Prop({ required: true })
   network: string;
 
-  @Prop()
+  @Prop({ required: true })
   address: string;
 
-  @Prop()
+  @Prop({ required: true })
   balance_change: number;
 
-  @Prop()
+  @Prop({ required: true })
   amount_sent: number;
 
-  @Prop()
+  @Prop({ required: true })
   amount_received: number;
 
-  @Prop()
+  @Prop({ required: true })
   confirmations: number;
 
-  @Prop()
+  @Prop({ required: true })
   is_green: boolean;
 }
 

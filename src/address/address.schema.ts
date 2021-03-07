@@ -21,7 +21,7 @@ export class Address {
   owner: string;
 
   @Prop({ required: true })
-  used: string;
+  used: boolean;
 }
 
 export const AddressSchema = SchemaFactory.createForClass(Address);
