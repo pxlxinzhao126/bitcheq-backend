@@ -49,7 +49,11 @@ export class BlockService {
   }
 
   async writeTransaction(webhook_response) {
-    if (webhook_response.type === 'address'&& webhook_response.data && webhook_response.data.txid) {
+    if (
+      webhook_response.type === 'address' &&
+      webhook_response.data &&
+      webhook_response.data.txid
+    ) {
       this.transactionService.create(webhook_response.data);
     }
   }

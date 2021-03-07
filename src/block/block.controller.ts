@@ -5,7 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
-  Query
+  Query,
 } from '@nestjs/common';
 import { BlockService } from './block.service';
 
