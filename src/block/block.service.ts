@@ -38,7 +38,6 @@ export class BlockService {
       const newAddress = await this.block.get_new_address({
         label: username + '-' + new Date().getTime(),
       });
-      await this.userService.addAddress(username, newAddress.data.address);
       return newAddress;
     } else {
       throw new HttpException(

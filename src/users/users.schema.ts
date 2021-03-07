@@ -10,16 +10,6 @@ export class User {
 
   @Prop({ required: true })
   password: string;
-
-  @Prop(
-    raw([
-      {
-        address: { type: String },
-        used: { type: Boolean },
-      },
-    ]),
-  )
-  addresses: Record<string, any>[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
