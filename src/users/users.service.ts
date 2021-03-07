@@ -9,20 +9,38 @@ export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
   async create(userDto: UserDto): Promise<User> {
-    const createdUser = new this.userModel({...userDto, btcBalance: 0, createdDate: new Date().toISOString()});
+    const createdUser = new this.userModel({
+      ...userDto,
+      btcBalance: 0,
+      createdDate: new Date().toISOString(),
+    });
     return createdUser.save();
   }
 
   async spend(username, amount) {
     const user = await this.findOneByName(username);
     if (user.btcBalance < amount) {
-      console.error(`User ${user.username} has negative balance. Investigate immediately`);
+      console.error(
+        `User ${user.username} has negative balance. Investigate immediately`,
+      );
     }
-    return this.userModel.findOne({ username }, {$inc: {btcBalance: -amount}}).exec();
+    return this.userModel
+      .findOneAndUpdate(
+        { username },
+        { $inc: { btcBalance: -amount } },
+        { useFindAndModify: false },
+      )
+      .exec();
   }
 
   async deposit(username, amount) {
-    return this.userModel.findOne({ username }, {$inc: {btcBalance: amount}}).exec();
+    return this.userModel
+      .findOneAndUpdate(
+        { username },
+        { $inc: { btcBalance: amount } },
+        { useFindAndModify: false },
+      )
+      .exec();
   }
 
   async findAll(): Promise<User[]> {

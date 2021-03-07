@@ -29,6 +29,6 @@ export class AddressService {
   }
 
   async setAddressUsed(address: string) {
-    this.addressModel.findOneAndUpdate( { address }, { used: true }).exec();
+    this.addressModel.findOneAndUpdate({ address }, { used: true }).exec();
   }
 }

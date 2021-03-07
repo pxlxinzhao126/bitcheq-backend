@@ -27,11 +27,15 @@ export class UsersController {
       throw new HttpException('Username taken', HttpStatus.BAD_REQUEST);
     }
 
-    return this.userService.mapUserToReturn(await this.userService.create(userDto));
+    return this.userService.mapUserToReturn(
+      await this.userService.create(userDto),
+    );
   }
 
   @Get()
   async getUserByName(@Query('username') username) {
-    return this.userService.mapUserToReturn(await this.userService.findOneByName(username));
+    return this.userService.mapUserToReturn(
+      await this.userService.findOneByName(username),
+    );
   }
 }

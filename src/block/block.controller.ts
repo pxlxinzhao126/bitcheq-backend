@@ -22,9 +22,9 @@ export class BlockController {
   }
 
   /**
-   * Existing Account Notification Id 3493a5e76693c2e9c20c75df
+   * Existing Account Notification Id 3b65011ba568c1131b2ed581
    * this.block.create_notification({ type: 'account', url: 'http://898191d27b2f.ngrok.io/block/webhook' });
-  */
+   */
   @Post('webhook')
   handleWebhook(@Body() webhook_response) {
     this.blockService.writeTransaction(webhook_response);
