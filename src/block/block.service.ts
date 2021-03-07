@@ -56,14 +56,29 @@ export class BlockService {
   }
 
   async writeTransaction(webhook_response) {
+    const data = webhook_response.data
+
     if (
       webhook_response.type === 'address' &&
-      webhook_response.data &&
-      webhook_response.data.txid
+      data && data.txid
     ) {
-      await this.transactionService.create(webhook_response.data);
-      await this.updateUserBalance(webhook_response.data);
+      if (await this.isNewTransaction(data)) {
+        await this.transactionService.create(data);
+      }
+
+      if (await this.isPendingTransaction(data)) {
+        await this.updateUserBalance(data);
+        await this.transactionService.completeTransaction(data.txid)
+      }
     }
+  }
+
+  async isNewTransaction(data) {
+    return !(await this.transactionService.findOne(data.txid));
+  }
+
+  async isPendingTransaction(data) {
+    return !!(await this.transactionService.findPendingTransaction(data.txid));
   }
 
   userDoesNotExist() {

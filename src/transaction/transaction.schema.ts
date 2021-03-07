@@ -28,6 +28,9 @@ export class Transaction {
 
   @Prop({ required: true })
   is_green: boolean;
+
+  @Prop({ required: true })
+  status: 'Pending' | 'Completed';
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

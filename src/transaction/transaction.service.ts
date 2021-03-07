@@ -12,7 +12,7 @@ export class TransactionService {
   ) {}
 
   async create(transactionDto: TransactionDto): Promise<Transaction> {
-    const createdTransaction = new this.transactionModel(transactionDto);
+    const createdTransaction = new this.transactionModel({...transactionDto, status: 'Pending'});
     return createdTransaction.save();
   }
 
@@ -22,5 +22,13 @@ export class TransactionService {
 
   async findOne(txid: string): Promise<Transaction> {
     return this.transactionModel.findOne({ txid }).exec();
+  }
+
+  async findPendingTransaction(txid: string): Promise<Transaction> {
+      return this.transactionModel.findOne({ txid, status: 'Pending' }).exec();
+  }
+
+  async completeTransaction(txid: string) {
+      return this.transactionModel.findOneAndUpdate( {txid}, {$set: {status: 'Completed'}}, { useFindAndModify: false });
   }
 }
