@@ -8,6 +8,10 @@ const API_KEY = '1886-c8a8-6818-3b4b';
 export class BlockService {
   block: BlockIo;
 
+  /**
+   * Existing Account Notification Id 3493a5e76693c2e9c20c75df 
+   * this.block.create_notification({ type: 'account', url: 'http://898191d27b2f.ngrok.io/block/webhook' });
+   */
   constructor(private userService: UsersService) {
     this.block = new BlockIo(API_KEY);
   }
@@ -27,8 +31,9 @@ export class BlockService {
   async getNewAddress(username: string) {
     const user = await this.userService.findOne(username);
     if (user) {
-      const newAddress = await this.block.get_new_address();
+      const newAddress = await this.block.get_new_address({ label: username + '-' + new Date().getTime()});
       await this.userService.addAddress(username, newAddress.data.address);
+      return newAddress;
     } else {
       throw new HttpException(
         'Username does not exist',

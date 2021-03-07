@@ -1,18 +1,18 @@
 import {
+  Body,
   Controller,
   Get,
   HttpException,
   HttpStatus,
-  Query,
+  Post,
+  Query
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
 import { BlockService } from './block.service';
 
 @Controller('block')
 export class BlockController {
   constructor(
-    private blockService: BlockService,
-    private userService: UsersService,
+    private blockService: BlockService
   ) {}
 
   @Get('new')
@@ -21,5 +21,10 @@ export class BlockController {
       return await this.blockService.getNewAddress(username);
     }
     throw new HttpException('username is required', HttpStatus.BAD_REQUEST);
+  }
+
+  @Post('webhook')
+  handleWebhook(@Body() body) {
+    return body;
   }
 }
