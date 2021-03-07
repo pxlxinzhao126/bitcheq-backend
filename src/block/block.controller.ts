@@ -11,9 +11,7 @@ import { BlockService } from './block.service';
 
 @Controller('block')
 export class BlockController {
-  constructor(
-    private blockService: BlockService
-  ) {}
+  constructor(private blockService: BlockService) {}
 
   @Get('new')
   async getNewAddress(@Query('username') username) {
@@ -24,7 +22,8 @@ export class BlockController {
   }
 
   @Post('webhook')
-  handleWebhook(@Body() body) {
-    return body;
+  handleWebhook(@Body() webhook_response) {
+    this.blockService.writeTransaction(webhook_response);
+    return 'Received';
   }
 }

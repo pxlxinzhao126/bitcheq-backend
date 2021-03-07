@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { BlockModule } from './block/block.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { mongoUrl } from './config';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { mongoUrl } from './config';
     AuthModule,
     UsersModule,
     BlockModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
