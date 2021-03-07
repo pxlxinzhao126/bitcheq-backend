@@ -20,7 +20,7 @@ export class TransactionService {
     return this.transactionModel.find().exec();
   }
 
-  async findOne(username: string): Promise<Transaction> {
-    return this.transactionModel.findOne({ username }).exec();
+  async findOne(txid: string): Promise<Transaction> {
+    return this.transactionModel.findOne({ txid }).exec();
   }
 }
