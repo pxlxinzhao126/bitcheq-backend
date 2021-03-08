@@ -28,6 +28,6 @@ export class BlockController {
   @Post('webhook')
   handleWebhook(@Body() webhook_response) {
     this.blockService.writeTransaction(webhook_response);
-    return 'Received';
+    return webhook_response;
   }
 }
