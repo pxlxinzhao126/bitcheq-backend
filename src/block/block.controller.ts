@@ -22,8 +22,9 @@ export class BlockController {
   }
 
   /**
-   * Existing Account Notification Id 3b65011ba568c1131b2ed581
+   * To open up webhook endpoint to internet: ngrok http -host-header=rewrite localhost:3000
    * this.block.create_notification({ type: 'account', url: 'http://898191d27b2f.ngrok.io/block/webhook' });
+   * block_io.delete_notification({ notification_id: 'NOTIFICATION ID' });
    */
   @Post('webhook')
   handleWebhook(@Body() webhook_response) {

@@ -15,7 +15,9 @@ export class TransactionService {
 
   async create(transactionDto: TransactionDto): Promise<Transaction> {
     const newTransaction = { ...transactionDto, status: 'Pending' };
-    this.logger.debug(`create new trasaction ${JSON.stringify(newTransaction)}`);
+    this.logger.debug(
+      `create new trasaction ${JSON.stringify(newTransaction)}`,
+    );
     const createdTransaction = new this.transactionModel(newTransaction);
     return createdTransaction.save();
   }
@@ -24,7 +26,9 @@ export class TransactionService {
     transactionDto: TransactionDto,
   ): Promise<Transaction> {
     const txid = transactionDto.txid;
-    this.logger.debug(`update trasaction ${txid} with ${JSON.stringify(transactionDto)}`);
+    this.logger.debug(
+      `update trasaction ${txid} with ${JSON.stringify(transactionDto)}`,
+    );
     return this.transactionModel.findOneAndUpdate(
       { txid },
       { ...transactionDto },
