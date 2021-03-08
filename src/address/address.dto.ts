@@ -4,5 +4,5 @@ export interface AddressDto {
   address: string;
   label: string;
   owner: string;
-  createdDate: string;
+  createdDate: number;
 }

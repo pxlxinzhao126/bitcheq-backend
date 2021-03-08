@@ -36,7 +36,7 @@ export class Transaction {
   owner: string;
 
   @Prop({ required: true })
-  createdDate: string;
+  createdDate: number;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

@@ -2,6 +2,6 @@ export interface UserDto {
   username: string;
   password: string;
   btcBalance: number;
-  createdDate: string;
+  createdDate: number;
   address: string;
 }

@@ -15,7 +15,7 @@ export class User {
   btcBalance: number;
 
   @Prop({ required: true })
-  createdDate: string;
+  createdDate: number;
 
   @Prop()
   address: string;

@@ -12,7 +12,7 @@ export class UsersService {
     const createdUser = new this.userModel({
       ...userDto,
       btcBalance: 0,
-      createdDate: new Date().toISOString(),
+      createdDate: new Date().getTime(),
     });
     return createdUser.save();
   }

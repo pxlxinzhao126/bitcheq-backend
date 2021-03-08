@@ -41,7 +41,7 @@ export class BlockService {
     this.logger.debug(`new address is created ${JSON.stringify(newAddress)}`);
     await this.addressService.create({
       owner: username,
-      createdDate: new Date().toISOString(),
+      createdDate: new Date().getTime(),
       ...newAddress.data,
     });
     this.userService.updateUserAddress(username, newAddress.data.address);

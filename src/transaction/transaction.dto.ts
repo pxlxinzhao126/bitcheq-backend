@@ -8,5 +8,5 @@ export interface TransactionDto {
   confirmations: number;
   is_green: boolean;
   owner: string;
-  createdDate: string;
+  createdDate: number;
 }
