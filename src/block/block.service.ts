@@ -71,7 +71,7 @@ export class BlockService {
       }
     }
 
-    return await this.transactionService.findOne(data.txid);
+    return await this.transactionService.findOne(data?.txid);
   }
 
   async isNewTransaction(data) {
