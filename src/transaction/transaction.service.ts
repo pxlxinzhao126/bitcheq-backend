@@ -18,7 +18,12 @@ export class TransactionService {
     transactionDto: TransactionDto,
     owner: string,
   ): Promise<Transaction> {
-    const newTransaction = { ...transactionDto, status: 'Pending', owner };
+    const newTransaction = {
+      ...transactionDto,
+      status: 'Pending',
+      owner,
+      createdDate: new Date().toISOString(),
+    };
     this.logger.debug(
       `create new transaction ${JSON.stringify(newTransaction)}`,
     );
@@ -40,20 +45,16 @@ export class TransactionService {
     );
   }
 
-  async findAll(): Promise<Transaction[]> {
-    return this.transactionModel.find().exec();
-  }
-
-  async findAllByOwner(owner: string): Promise<Transaction[]> {
-    return this.transactionModel.find({ owner }).exec();
-  }
-
   async findOne(txid: string): Promise<Transaction> {
     return this.transactionModel.findOne({ txid }).exec();
   }
 
-  async findOneByAddress(address: string): Promise<Transaction> {
-    return this.transactionModel.findOne({ address }).exec();
+  async findAllByAddress(address: string): Promise<Transaction[]> {
+    return this.transactionModel.find({ address }).exec();
+  }
+
+  async findAllByOwner(owner: string): Promise<Transaction[]> {
+    return this.transactionModel.find({ owner }).exec();
   }
 
   async findPendingTransaction(txid: string): Promise<Transaction> {

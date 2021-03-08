@@ -23,8 +23,4 @@ export class AddressService {
   async findOneByAddress(address: string): Promise<Address> {
     return this.addressModel.findOne({ address }).exec();
   }
-
-  async setAddressUsed(address: string) {
-    this.addressModel.findOneAndUpdate({ address }, { used: true }).exec();
-  }
 }

@@ -29,6 +29,6 @@ export class BlockController {
   @Post('webhook')
   async handleWebhook(@Body() webhook_response) {
     const res = await this.blockService.writeTransaction(webhook_response);
-    return `Tx ${res?.txid} updated`;
+    return `Transaction ${res.operation}: ${res?.txid} `;
   }
 }

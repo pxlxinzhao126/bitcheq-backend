@@ -34,6 +34,9 @@ export class Transaction {
 
   @Prop({ required: true })
   owner: string;
+
+  @Prop({ required: true })
+  createdDate: string;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

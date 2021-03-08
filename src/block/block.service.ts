@@ -27,7 +27,10 @@ export class BlockService {
       return user.address || (await this.createNewAddress(username));
     } else {
       this.logger.debug(`user ${username} does not exist`);
-      this.userDoesNotExist();
+      throw new HttpException(
+        'Username does not exist',
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
@@ -38,7 +41,7 @@ export class BlockService {
     this.logger.debug(`new address is created ${JSON.stringify(newAddress)}`);
     await this.addressService.create({
       owner: username,
-      used: false,
+      createdDate: new Date().toISOString(),
       ...newAddress.data,
     });
     this.userService.updateUserAddress(username, newAddress.data.address);
@@ -97,10 +100,6 @@ export class BlockService {
 
   async isPendingTransaction(data) {
     return !!(await this.transactionService.findPendingTransaction(data.txid));
-  }
-
-  userDoesNotExist() {
-    throw new HttpException('Username does not exist', HttpStatus.BAD_REQUEST);
   }
 
   async updateUserBalance(transactionDto: TransactionDto) {

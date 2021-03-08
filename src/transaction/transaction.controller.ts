@@ -8,7 +8,7 @@ export class TransactionsController {
   @Get('address/:address')
   async getByAddress(@Param('address') address) {
     return (
-      (await this.transactionService.findOneByAddress(address)) ||
+      (await this.transactionService.findAllByAddress(address)) ||
       'No transaction found'
     );
   }
@@ -16,10 +16,5 @@ export class TransactionsController {
   @Get('owner/:owner')
   async getByOwner(@Param('owner') owner) {
     return await this.transactionService.findAllByOwner(owner);
-  }
-
-  @Get()
-  async getAllTransactions() {
-    return await this.transactionService.findAll();
   }
 }
