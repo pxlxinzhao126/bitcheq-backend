@@ -14,7 +14,10 @@ export class TransactionService {
     private transactionModel: Model<TransactionDocument>,
   ) {}
 
-  async create(transactionDto: TransactionDto, owner: string): Promise<Transaction> {
+  async create(
+    transactionDto: TransactionDto,
+    owner: string,
+  ): Promise<Transaction> {
     const newTransaction = { ...transactionDto, status: 'Pending', owner };
     this.logger.debug(
       `create new trasaction ${JSON.stringify(newTransaction)}`,

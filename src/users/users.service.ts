@@ -51,6 +51,14 @@ export class UsersService {
     return this.userModel.findOne({ username }).exec();
   }
 
+  async updateUserAddress(username: string, address: string) {
+    return this.userModel.findOneAndUpdate(
+      { username },
+      { $set: { address } },
+      { useFindAndModify: false },
+    );
+  }
+
   mapUserToReturn(user: User) {
     const { username, btcBalance, createdDate } = user;
     return { username, btcBalance, createdDate };

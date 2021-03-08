@@ -3,4 +3,5 @@ export interface UserDto {
   password: string;
   btcBalance: number;
   createdDate: string;
+  address: string;
 }

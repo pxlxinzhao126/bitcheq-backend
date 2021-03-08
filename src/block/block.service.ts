@@ -21,45 +21,42 @@ export class BlockService {
   }
 
   async getUserAddress(username: string) {
-    if (await this.userExists(username)) {
-      const unusedAddress = await this.findUnusedAddress(username);
-      if (unusedAddress) {
-        return unusedAddress;
-      } else {
-        const newAddress = await this.createNewAddress(username);
-        return newAddress;
-      }
+    const user = await this.userService.findOneByName(username);
+    if (user) {
+      return user.address || (await this.createNewAddress(username));
     } else {
+      this.logger.debug(`user ${username} does not exist`);
       this.userDoesNotExist();
     }
-  }
-
-  async userExists(username: string) {
-    return !!(await this.userService.findOneByName(username));
-  }
-
-  async findUnusedAddress(username) {
-    return await this.addressService.findUnusedAddress(username);
   }
 
   async createNewAddress(username: string) {
     const newAddress = await this.block.get_new_address({
       label: username + '-' + new Date().getTime(),
     });
-    this.addressService.create({
+    this.logger.debug(`new address is created ${JSON.stringify(newAddress)}`);
+    await this.addressService.create({
       owner: username,
       used: false,
       ...newAddress.data,
     });
+    this.userService.updateUserAddress(username, newAddress.data.address);
     return newAddress;
   }
 
   async writeTransaction(webhook_response) {
     const data = webhook_response.data;
 
-    if (webhook_response.type === 'address' && data && data.txid && data.address) {
+    if (
+      webhook_response.type === 'address' &&
+      data &&
+      data.txid &&
+      data.address
+    ) {
       if (await this.isNewTransaction(data)) {
-        const addressEntity = await this.addressService.findOneByAddress(data.address);
+        const addressEntity = await this.addressService.findOneByAddress(
+          data.address,
+        );
         await this.transactionService.create(data, addressEntity.owner);
       } else {
         await this.transactionService.updateTransaction(data);

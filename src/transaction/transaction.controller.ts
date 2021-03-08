@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query
-} from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 
 @Controller('transactions')
@@ -12,8 +7,11 @@ export class TransactionsController {
 
   @Get('address/:address')
   async getByAddress(@Param('address') address) {
-    return await this.transactionService.findOneByAddress(address) || 'No transaction found';
-  }  
+    return (
+      (await this.transactionService.findOneByAddress(address)) ||
+      'No transaction found'
+    );
+  }
 
   @Get('owner/:owner')
   async getByOwner(@Param('owner') owner) {
