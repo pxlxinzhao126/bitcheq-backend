@@ -20,7 +20,7 @@ export class TransactionService {
   ): Promise<Transaction> {
     const newTransaction = { ...transactionDto, status: 'Pending', owner };
     this.logger.debug(
-      `create new trasaction ${JSON.stringify(newTransaction)}`,
+      `create new transaction ${JSON.stringify(newTransaction)}`,
     );
     const createdTransaction = new this.transactionModel(newTransaction);
     return createdTransaction.save();
@@ -31,7 +31,7 @@ export class TransactionService {
   ): Promise<Transaction> {
     const txid = transactionDto.txid;
     this.logger.debug(
-      `update trasaction ${txid} with ${JSON.stringify(transactionDto)}`,
+      `update transaction ${txid} with ${JSON.stringify(transactionDto)}`,
     );
     return this.transactionModel.findOneAndUpdate(
       { txid },
