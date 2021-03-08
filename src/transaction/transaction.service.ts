@@ -5,8 +5,8 @@ import { TransactionDto } from './transaction.dto';
 import { Transaction, TransactionDocument } from './transaction.schema';
 
 const TX_PER_PAGE = 10;
-const PENDING = "Pending";
-const COMPLETED = "Completed";
+const PENDING = 'Pending';
+const COMPLETED = 'Completed';
 @Injectable()
 export class TransactionService {
   private readonly logger = new Logger(TransactionService.name);

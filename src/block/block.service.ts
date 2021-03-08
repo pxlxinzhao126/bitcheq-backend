@@ -1,12 +1,12 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import * as BlockIo from 'block_io';
 import { AddressService } from 'src/address/address.service';
+import { BTC_TESTNET_API_KEY } from 'src/config';
 import { TransactionDto } from 'src/transaction/transaction.dto';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { User } from 'src/users/users.schema';
 import { UsersService } from 'src/users/users.service';
 
-const BTC_TESTNET_API_KEY = '1886-c8a8-6818-3b4b';
 export type WebhookResult = { txid: string; operation: string };
 @Injectable()
 export class BlockService {
@@ -24,7 +24,11 @@ export class BlockService {
   async getUserAddress(username: string) {
     const user = await this.userService.findOneByName(username);
     if (user) {
-      return user.address || (await this.createNewAddress(username));
+      if (user.address) {
+        return { data: { address: user.address} }
+      } else {
+        return await this.createNewAddress(username);
+      }
     } else {
       this.logger.debug(`user ${username} does not exist`);
       throw new HttpException(

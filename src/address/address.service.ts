@@ -16,10 +16,6 @@ export class AddressService {
     return createdAddress.save();
   }
 
-  async findAll(): Promise<Address[]> {
-    return this.addressModel.find().exec();
-  }
-
   async findOneByAddress(address: string): Promise<Address> {
     return this.addressModel.findOne({ address }).exec();
   }
