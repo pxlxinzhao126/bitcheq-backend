@@ -7,4 +7,5 @@ export interface TransactionDto {
   amount_received: number;
   confirmations: number;
   is_green: boolean;
+  owner: string;
 }

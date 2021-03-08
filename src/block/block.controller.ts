@@ -27,8 +27,8 @@ export class BlockController {
    * block_io.delete_notification({ notification_id: 'NOTIFICATION ID' });
    */
   @Post('webhook')
-  handleWebhook(@Body() webhook_response) {
-    this.blockService.writeTransaction(webhook_response);
-    return webhook_response;
+  async handleWebhook(@Body() webhook_response) {
+    const res = await this.blockService.writeTransaction(webhook_response);
+    return `Tx ${res.txid} updated`;
   }
 }

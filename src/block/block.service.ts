@@ -57,9 +57,10 @@ export class BlockService {
   async writeTransaction(webhook_response) {
     const data = webhook_response.data;
 
-    if (webhook_response.type === 'address' && data && data.txid) {
+    if (webhook_response.type === 'address' && data && data.txid && data.address) {
       if (await this.isNewTransaction(data)) {
-        await this.transactionService.create(data);
+        const addressEntity = await this.addressService.findOneByAddress(data.address);
+        await this.transactionService.create(data, addressEntity.owner);
       } else {
         await this.transactionService.updateTransaction(data);
       }
@@ -69,6 +70,8 @@ export class BlockService {
         await this.transactionService.completeTransaction(data.txid);
       }
     }
+
+    return await this.transactionService.findOne(data.txid);
   }
 
   async isNewTransaction(data) {

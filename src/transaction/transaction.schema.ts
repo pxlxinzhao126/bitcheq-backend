@@ -31,6 +31,9 @@ export class Transaction {
 
   @Prop({ required: true })
   status: 'Pending' | 'Completed';
+
+  @Prop({ required: true })
+  owner: string;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

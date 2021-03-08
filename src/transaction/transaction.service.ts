@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { stringify } from 'node:querystring';
 import { TransactionDto } from './transaction.dto';
 import { Transaction, TransactionDocument } from './transaction.schema';
 
@@ -13,8 +14,8 @@ export class TransactionService {
     private transactionModel: Model<TransactionDocument>,
   ) {}
 
-  async create(transactionDto: TransactionDto): Promise<Transaction> {
-    const newTransaction = { ...transactionDto, status: 'Pending' };
+  async create(transactionDto: TransactionDto, owner: string): Promise<Transaction> {
+    const newTransaction = { ...transactionDto, status: 'Pending', owner };
     this.logger.debug(
       `create new trasaction ${JSON.stringify(newTransaction)}`,
     );
@@ -40,8 +41,16 @@ export class TransactionService {
     return this.transactionModel.find().exec();
   }
 
+  async findAllByOwner(owner: string): Promise<Transaction[]> {
+    return this.transactionModel.find({ owner }).exec();
+  }
+
   async findOne(txid: string): Promise<Transaction> {
     return this.transactionModel.findOne({ txid }).exec();
+  }
+
+  async findOneByAddress(address: string): Promise<Transaction> {
+    return this.transactionModel.findOne({ address }).exec();
   }
 
   async findPendingTransaction(txid: string): Promise<Transaction> {
