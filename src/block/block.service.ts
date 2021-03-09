@@ -111,16 +111,18 @@ export class BlockService {
     const addressEntity = await this.addressService.findOneByAddress(address);
     let user: User;
     if (amount_sent > 0) {
-      this.logger.debug(`amount_sent is ${amount_sent}`);
+      this.logger.debug(`${addressEntity.owner} sent is ${amount_sent}`);
       user = await this.userService.spend(addressEntity.owner, amount_sent);
     }
     if (amount_received > 0) {
-      this.logger.debug(`amount_received is ${amount_received}`);
+      this.logger.debug(`${addressEntity.owner} received ${amount_received}`);
       user = await this.userService.deposit(
         addressEntity.owner,
         amount_received,
       );
     }
-    this.logger.debug(`User ${user?.username} has balance ${user?.btcBalance}`);
+    // User returned from findOneAndUpdate has the old balance
+    const updatedUser = await this.userService.findOneByName(addressEntity.owner);
+    this.logger.debug(`User ${updatedUser?.username} has balance ${updatedUser?.btcBalance}`);
   }
 }
