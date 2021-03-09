@@ -6,6 +6,6 @@ async function bootstrap() {
     logger: ['log', 'error', 'warn', 'debug'],
   });
   app.enableCors();
-  await app.listen(3000);
+  await app.listen(process.env.PORT || '80');
 }
 bootstrap();

@@ -11,4 +11,9 @@ export class AuthController {
   getHello(@Req() request: Request): string {
     return 'Hello ' + request['user']?.email + '!';
   }
+
+  @Get()
+  helloWorld(@Req() request: Request): string {
+    return 'Hello World';
+  }
 }
