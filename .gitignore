@@ -10,6 +10,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# Config
+src/auth/firebase.json
+
 # OS
 .DS_Store
 

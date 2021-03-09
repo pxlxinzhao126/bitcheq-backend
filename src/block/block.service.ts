@@ -25,7 +25,7 @@ export class BlockService {
     const user = await this.userService.findOneByName(username);
     if (user) {
       if (user.address) {
-        return { data: { address: user.address} }
+        return { data: { address: user.address } };
       } else {
         return await this.createNewAddress(username);
       }
@@ -122,7 +122,11 @@ export class BlockService {
       );
     }
     // User returned from findOneAndUpdate has the old balance
-    const updatedUser = await this.userService.findOneByName(addressEntity.owner);
-    this.logger.debug(`User ${updatedUser?.username} has balance ${updatedUser?.btcBalance}`);
+    const updatedUser = await this.userService.findOneByName(
+      addressEntity.owner,
+    );
+    this.logger.debug(
+      `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance}`,
+    );
   }
 }
