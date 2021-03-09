@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import * as BlockIo from 'block_io';
 import { AddressService } from 'src/address/address.service';
-import { BTC_TESTNET_API_KEY } from 'src/config';
 import { TransactionDto } from 'src/transaction/transaction.dto';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { User } from 'src/users/users.schema';
@@ -18,7 +17,7 @@ export class BlockService {
     private transactionService: TransactionService,
     private addressService: AddressService,
   ) {
-    this.block = new BlockIo(BTC_TESTNET_API_KEY);
+    this.block = new BlockIo(process.env.BITCHEQ_BTC_TESTNET_API_KEY);
   }
 
   async getUserAddress(username: string) {

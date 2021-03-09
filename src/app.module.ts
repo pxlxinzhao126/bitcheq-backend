@@ -3,13 +3,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { PreauthMiddleware } from './auth/preauth.middleware';
 import { BlockModule } from './block/block.module';
-import { mongoUrl } from './config';
 import { TransactionModule } from './transaction/transaction.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(mongoUrl),
+    MongooseModule.forRoot(process.env.BITCHEQ_DATABASE_URL),
     AuthModule,
     UsersModule,
     BlockModule,
