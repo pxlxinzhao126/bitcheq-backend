@@ -16,6 +16,8 @@ const firebase_params = {
   clientC509CertUrl: serviceAccount.client_x509_cert_url,
 };
 
+const whitelist = ['block/webhook'];
+
 @Injectable()
 export class PreauthMiddleware implements NestMiddleware {
   private defaultApp: any;
@@ -29,24 +31,32 @@ export class PreauthMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
-    if (token != null && token != '') {
-      this.defaultApp
-        .auth()
-        .verifyIdToken(token.replace('Bearer ', ''))
-        .then(async (decodedToken) => {
-          const user = {
-            email: decodedToken.email,
-          };
-          req['user'] = user;
-          next();
-        })
-        .catch((error) => {
-          console.error(error);
-          this.accessDenied(req.url, res);
-        });
-    } else {
+
+    if (this.inWhitelist(req)) {
       next();
+      return;
+    } 
+
+    // dev only
+    if (!token) {
+      next();
+      return;
     }
+
+    this.defaultApp
+      .auth()
+      .verifyIdToken(token.replace('Bearer ', ''))
+      .then(async (decodedToken) => {
+        const user = {
+          email: decodedToken.email,
+        };
+        req['user'] = user;
+        next();
+      })
+      .catch((error) => {
+        console.error(error);
+        this.accessDenied(req.url, res);
+      });
   }
 
   private accessDenied(url: string, res: Response) {
@@ -56,5 +66,12 @@ export class PreauthMiddleware implements NestMiddleware {
       path: url,
       message: 'Access Denied',
     });
+  }
+
+  private inWhitelist(req): boolean {
+    if (whitelist.indexOf(req.params['0']) > -1) {
+      return true;
+    }
+    return false;
   }
 }

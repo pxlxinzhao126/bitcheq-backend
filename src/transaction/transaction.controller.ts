@@ -12,6 +12,11 @@ import { TransactionService } from './transaction.service';
 export class TransactionsController {
   constructor(private transactionService: TransactionService) {}
 
+  @Get(':txid')
+  async getById(@Param('txid') txid) {
+    return await this.transactionService.findOne(txid);
+  }
+
   @Get('address/:address')
   async getByAddress(@Param('address') address) {
     return await this.transactionService.findAllByAddress(address);
