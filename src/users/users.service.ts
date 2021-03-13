@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserDto } from './users.dto';
@@ -56,7 +56,11 @@ export class UsersService {
   }
 
   mapUserToReturn(user: User) {
-    const { username, btcBalance, createdDate } = user;
-    return { username, btcBalance, createdDate };
+    if (user) {
+      const { username, btcBalance, createdDate } = user;
+      return { username, btcBalance, createdDate };
+    } else {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
   }
 }

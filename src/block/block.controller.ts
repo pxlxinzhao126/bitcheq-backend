@@ -36,14 +36,14 @@ export class BlockController {
    */
   @Post('withdraw')
   async withdraw(@Body() withdraw_data) {
-    const {username, amount, toAddress} = withdraw_data;
+    const { username, amount, toAddress } = withdraw_data;
     const res = await this.blockService.withdraw(username, amount, toAddress);
     return res;
   }
 
   @Post('estimate')
   async estimate(@Body() withdraw_data) {
-    const {amount, toAddress} = withdraw_data;
+    const { amount, toAddress } = withdraw_data;
     const res = await this.blockService.estimate(amount, toAddress);
     return res;
   }

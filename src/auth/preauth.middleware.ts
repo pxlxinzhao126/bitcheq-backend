@@ -35,7 +35,7 @@ export class PreauthMiddleware implements NestMiddleware {
     if (this.inWhitelist(req)) {
       next();
       return;
-    } 
+    }
 
     // dev only
     if (!token) {

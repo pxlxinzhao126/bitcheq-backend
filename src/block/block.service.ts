@@ -16,7 +16,10 @@ export class BlockService {
     private transactionService: TransactionService,
     private addressService: AddressService,
   ) {
-    this.block = new BlockIo(process.env.BITCHEQ_BTC_TESTNET_API_KEY, process.env.SECRET_PIN);
+    this.block = new BlockIo(
+      process.env.BITCHEQ_BTC_TESTNET_API_KEY,
+      process.env.SECRET_PIN,
+    );
   }
 
   async getUserAddress(username: string) {
@@ -108,11 +111,12 @@ export class BlockService {
     const { address, balance_change } = transactionDto;
     const addressEntity = await this.addressService.findOneByAddress(address);
 
-    this.logger.debug(`Update user ${addressEntity.owner} balance ${JSON.stringify(transactionDto)}`);
-    await this.userService.deposit(
-      addressEntity.owner,
-      balance_change,
+    this.logger.debug(
+      `Update user ${addressEntity.owner} balance ${JSON.stringify(
+        transactionDto,
+      )}`,
     );
+    await this.userService.deposit(addressEntity.owner, balance_change);
     // User returned from findOneAndUpdate has the old balance
     const updatedUser = await this.userService.findOneByName(
       addressEntity.owner,
@@ -123,40 +127,52 @@ export class BlockService {
   }
 
   async withdraw(username: string, amount: string, toAddress: string) {
-    this.logger.debug(`${username} initiated withdraw of ${amount} to ${toAddress}`);
+    this.logger.debug(
+      `${username} initiated withdraw of ${amount} to ${toAddress}`,
+    );
     if (await this.hasEnoughBalance(username, amount, toAddress)) {
-      const res = await this.block.withdraw_from_addresses({ 
-        amounts: amount, 
-        from_addresses: await this.getUserAddress(username), 
-        to_addresses: toAddress 
+      const res = await this.block.withdraw_from_addresses({
+        amounts: amount,
+        from_addresses: await this.getUserAddress(username),
+        to_addresses: toAddress,
       });
-      this.logger.debug(`Withdraw transaction finished ${JSON.stringify(res)}`)
+      this.logger.debug(`Withdraw transaction finished ${JSON.stringify(res)}`);
       return res;
     } else {
       this.logger.debug(`${username} has not enough balance`);
-      throw new HttpException(`${username} has not enough balance`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `${username} has not enough balance`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
   }
 
-  private async hasEnoughBalance(username: string, amount: string, toAddress: string): Promise<boolean> {
+  private async hasEnoughBalance(
+    username: string,
+    amount: string,
+    toAddress: string,
+  ): Promise<boolean> {
     const user = await this.userService.findOneByName(username);
     const currentBalance = user.btcBalance;
 
     if (+currentBalance > +amount) {
-        let estimatedResult;
-        try {
-          estimatedResult = await this.estimate(amount, toAddress);
-        } catch(e) {
-          this.logger.debug(`Estimation failed. ${JSON.stringify(e.data)}`)
-          throw new HttpException('Not enough total balance', HttpStatus.BAD_REQUEST)
-        }
-        
-        if (estimatedResult && estimatedResult.data) {
-          const { estimated_network_fee, blockio_fee } = estimatedResult.data;
-          if (estimated_network_fee && blockio_fee) {
-            const totalWithdraw = +amount + +estimated_network_fee + +blockio_fee;
-    
-            this.logger.debug(`
+      let estimatedResult;
+      try {
+        estimatedResult = await this.estimate(amount, toAddress);
+      } catch (e) {
+        this.logger.debug(`Estimation failed. ${JSON.stringify(e.data)}`);
+        throw new HttpException(
+          'Not enough total balance',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (estimatedResult && estimatedResult.data) {
+        const { estimated_network_fee, blockio_fee } = estimatedResult.data;
+        if (estimated_network_fee && blockio_fee) {
+          const totalWithdraw = +amount + +estimated_network_fee + +blockio_fee;
+
+          this.logger.debug(`
               Withdraw estimation for User ${username}
               Current balance: ${currentBalance}
               Amount: ${amount}
@@ -164,9 +180,9 @@ export class BlockService {
               BlockIo Fee: ${blockio_fee}
               Total: ${totalWithdraw}
               Expected balance: ${currentBalance - totalWithdraw}
-            `)
-            return +currentBalance > totalWithdraw;
-          }
+            `);
+          return +currentBalance > totalWithdraw;
+        }
       }
     }
 
@@ -174,6 +190,9 @@ export class BlockService {
   }
 
   async estimate(amount: string, toAddress: string) {
-    return await this.block.get_network_fee_estimate({ amounts: amount, to_addresses: toAddress });
+    return await this.block.get_network_fee_estimate({
+      amounts: amount,
+      to_addresses: toAddress,
+    });
   }
 }
