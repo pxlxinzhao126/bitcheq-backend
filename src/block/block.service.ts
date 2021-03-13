@@ -123,13 +123,54 @@ export class BlockService {
   }
 
   async withdraw(username: string, amount: string, toAddress: string) {
-    const res = await this.block.withdraw_from_addresses({ 
-      amounts: amount, 
-      from_addresses: await this.getUserAddress(username), 
-      to_addresses: toAddress 
-    });
-    this.logger.debug(`withdraw transaction finished ${JSON.stringify(res)}`)
-    return res;
+    this.logger.debug(`${username} initiated withdraw of ${amount} to ${toAddress}`);
+    if (await this.hasEnoughBalance(username, amount, toAddress)) {
+      const res = await this.block.withdraw_from_addresses({ 
+        amounts: amount, 
+        from_addresses: await this.getUserAddress(username), 
+        to_addresses: toAddress 
+      });
+      this.logger.debug(`Withdraw transaction finished ${JSON.stringify(res)}`)
+      return res;
+    } else {
+      this.logger.debug(`${username} has not enough balance`);
+      throw new HttpException(`${username} has not enough balance`, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  private async hasEnoughBalance(username: string, amount: string, toAddress: string): Promise<boolean> {
+    const user = await this.userService.findOneByName(username);
+    const currentBalance = user.btcBalance;
+
+    if (+currentBalance > +amount) {
+        let estimatedResult;
+        try {
+          estimatedResult = await this.estimate(amount, toAddress);
+        } catch(e) {
+          this.logger.debug(`Estimation failed. ${JSON.stringify(e.data)}`)
+          throw new HttpException('Not enough total balance', HttpStatus.BAD_REQUEST)
+        }
+        
+        if (estimatedResult && estimatedResult.data) {
+          const { estimated_network_fee, blockio_fee } = estimatedResult.data;
+          if (estimated_network_fee && blockio_fee) {
+            const totalWithdraw = +amount + +estimated_network_fee + +blockio_fee;
+    
+            this.logger.debug(`
+              Withdraw estimation for User ${username}
+              Current balance: ${currentBalance}
+              Amount: ${amount}
+              Estimated Network Fee: ${estimated_network_fee}
+              BlockIo Fee: ${blockio_fee}
+              Total: ${totalWithdraw}
+              Expected balance: ${currentBalance - totalWithdraw}
+            `)
+            return +currentBalance > totalWithdraw;
+          }
+      }
+    }
+
+    return false;
   }
 
   async estimate(amount: string, toAddress: string) {
