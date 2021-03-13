@@ -11,32 +11,41 @@ export class Transaction {
   @Prop({ required: true })
   network: string;
 
-  @Prop({ required: true })
+  @Prop()
   address: string;
 
-  @Prop({ required: true })
+  @Prop()
   balance_change: number;
 
-  @Prop({ required: true })
+  @Prop()
   amount_sent: number;
 
-  @Prop({ required: true })
+  @Prop()
   amount_received: number;
 
-  @Prop({ required: true })
+  @Prop()
   confirmations: number;
 
-  @Prop({ required: true })
+  @Prop()
   is_green: boolean;
 
-  @Prop({ required: true })
+  @Prop()
   status: 'Pending' | 'Completed';
 
-  @Prop({ required: true })
+  @Prop()
   owner: string;
 
   @Prop({ required: true })
   createdDate: number;
+
+  @Prop()
+  amount_withdrawn: number;
+
+  @Prop()
+  network_fee: number;
+
+  @Prop()
+  blockio_fee: number;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

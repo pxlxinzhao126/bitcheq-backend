@@ -21,10 +21,34 @@ export class BlockController {
     throw new HttpException('username is required', HttpStatus.BAD_REQUEST);
   }
 
+  /**
+   * {
+      status: 'success',
+      data: {
+        network: 'BTCTEST',
+        txid: '6d0b41befd9dbbbc7f43c710b6227aefd8cc45ab935c25350b40d96526c153ff',
+        amount_withdrawn: '0.00028055',
+        amount_sent: '0.00017600',
+        network_fee: '0.00010455',
+        blockio_fee: '0.00000000'
+      }
+    }
+   */
   @Post('withdraw')
   async withdraw(@Body() withdraw_data) {
     const {username, amount, toAddress} = withdraw_data;
-    return await this.blockService.withdraw(username, amount, toAddress);
+    // const withdrawData = await this.blockService.withdraw(username, amount, toAddress);
+    // const { data } = await this.blockService.withdraw(username, amount, toAddress);
+    const data = {
+      network: 'BTCTEST',
+      txid: '6d0b41befd9dbbbc7f43c710b6227aefd8cc45ab935c25350b40d96526c153ff',
+      amount_withdrawn: '0.00028055',
+      amount_sent: '0.00017600',
+      network_fee: '0.00010455',
+      blockio_fee: '0.00000000'
+    }
+    this.blockService.wirteWithdrawTransaction(data, username);
+    return 'Success';
   }
 
   /**

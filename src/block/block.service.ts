@@ -17,7 +17,7 @@ export class BlockService {
     private transactionService: TransactionService,
     private addressService: AddressService,
   ) {
-    this.block = new BlockIo(process.env.BITCHEQ_BTC_TESTNET_API_KEY);
+    this.block = new BlockIo(process.env.BITCHEQ_BTC_TESTNET_API_KEY, process.env.SECRET_PIN);
   }
 
   async getUserAddress(username: string) {
@@ -139,6 +139,18 @@ export class BlockService {
 
   async estimate(amount: string, toAddress: string) {
     return await this.block.get_network_fee_estimate({ amounts: amount, to_addresses: toAddress });
+  }
+
+  async wirteWithdrawTransaction(withdrawData, owner) {
+    const {network, txid, amount_withdrawn, amount_sent, network_fee, blockio_fee} = withdrawData;
+    this.transactionService.create({
+      network,
+      txid,
+      amount_withdrawn,
+      amount_sent,
+      network_fee,
+      blockio_fee,
+    }, owner);
   }
 
 
