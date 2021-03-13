@@ -128,4 +128,18 @@ export class BlockService {
       `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance}`,
     );
   }
+
+  async withdraw(username: string, amount: string, toAddress: string) {
+    return await this.block.withdraw_from_addresses({ 
+      amounts: amount, 
+      from_addresses: await this.getUserAddress(username), 
+      to_addresses: toAddress 
+    });
+  }
+
+  async estimate(amount: string, toAddress: string) {
+    return await this.block.get_network_fee_estimate({ amounts: amount, to_addresses: toAddress });
+  }
+
+
 }
