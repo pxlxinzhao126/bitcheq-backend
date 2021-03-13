@@ -38,8 +38,14 @@ export class BlockController {
   async withdraw(@Body() withdraw_data) {
     const {username, amount, toAddress} = withdraw_data;
     const res = await this.blockService.withdraw(username, amount, toAddress);
-    this.blockService.logWithdrawTransaction(res);
-    return 'Success';
+    return res;
+  }
+
+  @Post('estimate')
+  async estimate(@Body() withdraw_data) {
+    const {amount, toAddress} = withdraw_data;
+    const res = await this.blockService.estimate(amount, toAddress);
+    return res;
   }
 
   /**
@@ -50,6 +56,6 @@ export class BlockController {
   @Post('webhook')
   async handleWebhook(@Body() webhook_response) {
     const res = await this.blockService.writeTransaction(webhook_response);
-    return `Transaction ${res.operation}: ${res?.txid} `;
+    return `Transaction ${res.operation}: ${res?.txid}`;
   }
 }

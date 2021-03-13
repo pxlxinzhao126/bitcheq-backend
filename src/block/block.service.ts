@@ -3,7 +3,6 @@ import * as BlockIo from 'block_io';
 import { AddressService } from 'src/address/address.service';
 import { TransactionDto } from 'src/transaction/transaction.dto';
 import { TransactionService } from 'src/transaction/transaction.service';
-import { User } from 'src/users/users.schema';
 import { UsersService } from 'src/users/users.service';
 
 export type WebhookResult = { txid: string; operation: string };
@@ -106,42 +105,34 @@ export class BlockService {
   }
 
   async updateUserBalance(transactionDto: TransactionDto) {
-    const { amount_sent, amount_received, address } = transactionDto;
+    const { address, balance_change } = transactionDto;
     const addressEntity = await this.addressService.findOneByAddress(address);
-    let user: User;
-    if (amount_sent > 0) {
-      this.logger.debug(`${addressEntity.owner} sent is ${amount_sent}`);
-      user = await this.userService.spend(addressEntity.owner, amount_sent);
-    }
-    if (amount_received > 0) {
-      this.logger.debug(`${addressEntity.owner} received ${amount_received}`);
-      user = await this.userService.deposit(
-        addressEntity.owner,
-        amount_received,
-      );
-    }
+
+    this.logger.debug(`Update user ${addressEntity.owner} balance ${JSON.stringify(transactionDto)}`);
+    await this.userService.deposit(
+      addressEntity.owner,
+      balance_change,
+    );
     // User returned from findOneAndUpdate has the old balance
     const updatedUser = await this.userService.findOneByName(
       addressEntity.owner,
     );
     this.logger.debug(
-      `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance}`,
+      `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance} (delta: ${balance_change})`,
     );
   }
 
   async withdraw(username: string, amount: string, toAddress: string) {
-    return await this.block.withdraw_from_addresses({ 
+    const res = await this.block.withdraw_from_addresses({ 
       amounts: amount, 
       from_addresses: await this.getUserAddress(username), 
       to_addresses: toAddress 
     });
+    this.logger.debug(`withdraw transaction finished ${JSON.stringify(res)}`)
+    return res;
   }
 
   async estimate(amount: string, toAddress: string) {
     return await this.block.get_network_fee_estimate({ amounts: amount, to_addresses: toAddress });
-  }
-
-  async logWithdrawTransaction(withdrawData) {
-    this.logger.debug(`withdraw transaction initiated ${withdrawData}`)
   }
 }
