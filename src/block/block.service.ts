@@ -74,7 +74,11 @@ export class BlockService {
       }
 
       if (await this.isPendingTransaction(data)) {
-        await this.updateUserBalance(data);
+        if (+data.balance_change > 0) {
+          await this.updateUserBalance(data);
+        } else {
+          this.logger.debug(`withdraw transaction does not update balance`);
+        }
         await this.transactionService.completeTransaction(data.txid);
       }
     } else {
@@ -141,12 +145,26 @@ export class BlockService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    if (await this.hasEnoughBalance(username, amount, toAddress)) {
+    const checkResult = await this.preWithdrawCheck(username, amount, toAddress);
+    if (checkResult) {
+      const { totalWithdraw } = checkResult;
       const res = await this.block.withdraw_from_addresses({
         amounts: amount,
         from_addresses: await this.getUserAddress(username),
         to_addresses: toAddress,
       });
+
+      // Withdraw transaction updates balance immediately. Because webhook's address can be random.
+      await this.userService.spend(username, checkResult.totalWithdraw);
+
+      // User returned from findOneAndUpdate has the old balance
+      const updatedUser = await this.userService.findOneByName(
+        username,
+      );
+
+      this.logger.debug(
+        `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance} (delta: ${totalWithdraw})`,
+      );
       this.logger.debug(`Withdraw transaction finished ${JSON.stringify(res)}`);
       return res;
     } else {
@@ -158,11 +176,11 @@ export class BlockService {
     }
   }
 
-  private async hasEnoughBalance(
+  private async preWithdrawCheck(
     username: string,
     amount: string,
     toAddress: string,
-  ): Promise<boolean> {
+  ): Promise<any> {
     const user = await this.userService.findOneByName(username);
     const currentBalance = user.btcBalance;
 
@@ -192,7 +210,9 @@ export class BlockService {
               Total: ${totalWithdraw}
               Expected balance: ${currentBalance - totalWithdraw}
             `);
-          return +currentBalance > totalWithdraw;
+          return {
+            totalWithdraw
+          }
         }
       }
     }
