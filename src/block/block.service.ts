@@ -102,6 +102,7 @@ export class BlockService {
     if (unconfirmedTransactions && unconfirmedTransactions.length > 0) {
       for (let tx of unconfirmedTransactions) {
         if (tx.confirmations >= 4 && tx.confirmed === false) {
+          this.logger.debug(`Confirm transaction ${tx.txid}, deduct pending balance by ${tx.balance_change}`);
           await this.updateUserPendingBalance(owner, -tx.balance_change);
           await this.transactionService.confirmTransaction(tx.txid);
         }
@@ -158,6 +159,10 @@ export class BlockService {
     if (currentUser.pendingBtcBalance + balance_change >= 0) {
       // Pending balance is always positive. Withdraw happens immediately which does not require confirmation
       await this.userService.updateUserPendingBalance(username, balance_change);
+    } else {
+      this.logger.error(`
+      Prevented pending balance going to negative for user ${username}. 
+      Pending balance is ${currentUser.pendingBtcBalance} but balance change is ${balance_change}`);
     }
 
     // User returned from findOneAndUpdate has the old balance
