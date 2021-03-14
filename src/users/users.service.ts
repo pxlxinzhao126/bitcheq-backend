@@ -12,6 +12,7 @@ export class UsersService {
     const createdUser = new this.userModel({
       ...userDto,
       btcBalance: 0,
+      pendingBtcBalance: 0,
       createdDate: new Date().getTime(),
     });
     return createdUser.save();
@@ -55,10 +56,18 @@ export class UsersService {
     );
   }
 
+  async updateUserPendingBalance(username: string, amount: number) {
+    return this.userModel.findOneAndUpdate(
+      { username },
+      { $inc: { pendingBtcBalance: amount } },
+      { useFindAndModify: false },
+    );
+  }
+
   mapUserToReturn(user: User) {
     if (user) {
-      const { username, btcBalance, createdDate } = user;
-      return { username, btcBalance, createdDate };
+      const { username, btcBalance, pendingBtcBalance, createdDate } = user;
+      return { username, btcBalance, pendingBtcBalance, createdDate };
     } else {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }

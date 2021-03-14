@@ -59,23 +59,29 @@ export class BlockService {
 
     if (this.isValidAddressNotification(webhook_response)) {
       response.txid = data.txid;
+      const owner = await this.getAddressOwner(data.address);
       this.logger.debug(
         `Received address type webhook ${JSON.stringify(webhook_response)}`,
       );
       if (await this.isNewTransaction(data)) {
         response.operation = 'created';
         await this.transactionService.create(
-          data,
-          await this.getAddressOwner(data.address),
+          data, owner
         );
       } else {
         response.operation = 'updated';
         await this.transactionService.updateTransaction(data);
+
+        if (data?.confirmations > 3) {
+          this.logger.debug(`User ${owner} has ${data.balance_change} confirmed after ${data.confirmations} confirmations`)
+          await this.updateUserPendingBalance(owner, -data.balance_change);
+        }
       }
 
       if (await this.isPendingTransaction(data)) {
         if (+data.balance_change > 0) {
-          await this.updateUserBalance(data);
+          await this.updateUserBalance(owner, data.balance_change);
+          await this.updateUserPendingBalance(owner, data.balance_change);
         } else {
           this.logger.debug(`withdraw transaction does not update balance`);
         }
@@ -116,22 +122,31 @@ export class BlockService {
     return !!(await this.transactionService.findPendingTransaction(data.txid));
   }
 
-  async updateUserBalance(transactionDto: TransactionDto) {
-    const { address, balance_change } = transactionDto;
-    const addressEntity = await this.addressService.findOneByAddress(address);
-
+  async updateUserBalance(username: string, balance_change: number) {
     this.logger.debug(
-      `Update user ${addressEntity.owner} balance ${JSON.stringify(
-        transactionDto,
-      )}`,
+      `Update user ${username} balance ${balance_change}`,
     );
-    await this.userService.deposit(addressEntity.owner, balance_change);
+    await this.userService.deposit(username, balance_change);
     // User returned from findOneAndUpdate has the old balance
     const updatedUser = await this.userService.findOneByName(
-      addressEntity.owner,
+      username
     );
     this.logger.debug(
       `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance} (delta: ${balance_change})`,
+    );
+  }
+
+  async updateUserPendingBalance(username: string, balance_change: number) {
+    this.logger.debug(
+      `Update user ${username} pending balance ${balance_change}`
+    );
+    await this.userService.updateUserPendingBalance(username, balance_change);
+    // User returned from findOneAndUpdate has the old balance
+    const updatedUser = await this.userService.findOneByName(
+      username
+    );
+    this.logger.debug(
+      `User ${updatedUser?.username} has pending balance ${updatedUser?.pendingBtcBalance} (delta: ${balance_change})`,
     );
   }
 

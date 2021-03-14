@@ -14,6 +14,9 @@ export class User {
   @Prop({ required: true })
   btcBalance: number;
 
+  @Prop()
+  pendingBtcBalance: number;
+
   @Prop({ required: true })
   createdDate: number;
 
