@@ -60,27 +60,36 @@ export class BlockService {
     if (this.isValidAddressNotification(webhook_response)) {
       response.txid = data.txid;
       const owner = await this.getAddressOwner(data.address);
-      this.logger.debug(
-        `Received address type webhook ${JSON.stringify(webhook_response)}`,
-      );
-      if (await this.isNewTransaction(data)) {
-        response.operation = 'created';
-        await this.transactionService.create(data, owner);
+
+      if (owner) {
+        this.logger.debug(
+          `Received address type webhook ${JSON.stringify(webhook_response)}`,
+        );
+        if (await this.isNewTransaction(data)) {
+          response.operation = 'created';
+          await this.transactionService.create(data, owner);
+        } else {
+          response.operation = 'updated';
+          await this.transactionService.updateTransaction(data);
+        }
+  
+        if (await this.isPendingTransaction(data)) {
+          // Withdraw webhook does not affect user balances
+          if (+data.balance_change > 0) {
+            await this.updateUserBalance(owner, data.balance_change);
+            await this.updateUserPendingBalance(owner, data.balance_change);
+          } else {
+            this.logger.debug(`withdraw transaction does not update balance`);
+          }
+          await this.transactionService.completeTransaction(data.txid);
+        }
       } else {
-        response.operation = 'updated';
-        await this.transactionService.updateTransaction(data);
+        response.operation = 'not modified';
+        this.logger.debug(
+          `Owner not found for address ${data.address}`,
+        );
       }
 
-      if (await this.isPendingTransaction(data)) {
-        // Withdraw webhook does not affect user balances
-        if (+data.balance_change > 0) {
-          await this.updateUserBalance(owner, data.balance_change);
-          await this.updateUserPendingBalance(owner, data.balance_change);
-        } else {
-          this.logger.debug(`withdraw transaction does not update balance`);
-        }
-        await this.transactionService.completeTransaction(data.txid);
-      }
     } else {
       this.logger.debug(
         `Received non-address type webhook ${JSON.stringify(webhook_response)}`,
@@ -121,13 +130,11 @@ export class BlockService {
 
   async getAddressOwner(address: string) {
     const addressEntity = await this.addressService.findOneByAddress(address);
-    try {
+
+    if (addressEntity) {
       return addressEntity.owner;
-    } catch (e) {
-      throw new HttpException(
-        `Address ${address} not found`,
-        HttpStatus.BAD_REQUEST,
-      );
+    } else {
+      return null;
     }
   }
 
