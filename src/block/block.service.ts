@@ -100,6 +100,7 @@ export class BlockService {
   }
 
   async confirmTransactions(owner: string) {
+    this.logger.debug(`confirmTransactions called by ${owner}`);
     const unconfirmedTransactions = await this.transactionService.findAllUnconfirmedByOwner(owner);
     if (unconfirmedTransactions && unconfirmedTransactions.length > 0) {
       const blockTxs = await this.block.get_transactions({ type: 'received', addresses: unconfirmedTransactions[0].address });
