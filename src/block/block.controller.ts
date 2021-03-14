@@ -20,6 +20,14 @@ export class BlockController {
     }
     throw new HttpException('username is required', HttpStatus.BAD_REQUEST);
   }
+ 
+  @Get('getTransactionFromBlock')
+  async getTransactionFromBlock(@Query('address') address) {
+    if (address) {
+      return await this.blockService.getTransactionFromBlock(address);
+    }
+    throw new HttpException('address is required', HttpStatus.BAD_REQUEST);
+  }
 
   /**
    * {
@@ -45,6 +53,14 @@ export class BlockController {
   async estimate(@Body() withdraw_data) {
     const { amount, toAddress } = withdraw_data;
     const res = await this.blockService.estimate(amount, toAddress);
+    return res;
+  }
+
+  @Post('confirm')
+  async confirm(@Body() data) {
+    const { user } = data;
+    console.log('user', user);
+    const res = await this.blockService.confirmTransactions(user);
     return res;
   }
 

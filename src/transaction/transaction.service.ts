@@ -92,4 +92,12 @@ export class TransactionService {
       { useFindAndModify: false },
     );
   }
+
+  async updateConfirmation(txid: string, confirmations: number) {
+    return this.transactionModel.findOneAndUpdate(
+      { txid },
+      { $set: { confirmations } },
+      { useFindAndModify: false },
+    );
+  }
 }
