@@ -69,14 +69,6 @@ export class BlockService {
       } else {
         response.operation = 'updated';
         await this.transactionService.updateTransaction(data);
-
-        // sync user's transactions, only for receiving
-        if (data?.confirmations == 4 && +data.balance_change > 0) {
-          this.logger.debug(
-            `User ${owner} has ${data.balance_change} confirmed after ${data.confirmations} confirmations`,
-          );
-          await this.confirmTransactions(owner);
-        }
       }
 
       if (await this.isPendingTransaction(data)) {
