@@ -53,7 +53,7 @@ export class BlockService {
   }
 
   async writeTransaction(webhook_response): Promise<WebhookResult> {
-    this.logger.debug('start to write transactions');
+    this.logger.debug(`start to write transactions ${webhook_response}`);
     const data = webhook_response?.data;
     let response: WebhookResult = { txid: null, operation: null };
 
