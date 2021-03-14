@@ -59,7 +59,6 @@ export class BlockController {
   @Post('confirm')
   async confirm(@Body() data) {
     const { user } = data;
-    console.log('user', user);
     const res = await this.blockService.confirmTransactions(user);
     return res;
   }

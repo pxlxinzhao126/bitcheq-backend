@@ -101,7 +101,7 @@ export class BlockService {
     const unconfirmedTransactions = await this.transactionService.findAllUnconfirmedByOwner(owner);
     if (unconfirmedTransactions && unconfirmedTransactions.length > 0) {
       const blockTxs = await this.block.get_transactions({ type: 'received', addresses: unconfirmedTransactions[0].address });
-      console.log('blockTxs', blockTxs);
+      this.logger.debug(`Query received transactions by address of ${owner} ${JSON.stringify(blockTxs)}`);
       const txs = blockTxs?.data?.txs || [];
 
       for (let unconfirmedTx of unconfirmedTransactions) {
