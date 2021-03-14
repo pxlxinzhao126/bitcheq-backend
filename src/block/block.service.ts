@@ -69,11 +69,12 @@ export class BlockService {
         response.operation = 'updated';
         await this.transactionService.updateTransaction(data);
 
-        if (data?.confirmations == 4) {
+        // sync user's transactions, only for receiving
+        if (data?.confirmations == 4 && +data.balance_change > 0) {
           this.logger.debug(
             `User ${owner} has ${data.balance_change} confirmed after ${data.confirmations} confirmations`,
           );
-          await this.updateUserPendingBalance(owner, -data.balance_change);
+          await this.confirmTransactions(owner, data);
         }
       }
 
@@ -94,6 +95,18 @@ export class BlockService {
     }
 
     return response;
+  }
+
+  private async confirmTransactions(owner: string, data: any) {
+    const unconfirmedTransactions = await this.transactionService.findAllUnconfirmedByOwner(owner);
+    if (unconfirmedTransactions && unconfirmedTransactions.length > 0) {
+      for (let tx of unconfirmedTransactions) {
+        if (tx.confirmations >= 4 && tx.confirmed === false) {
+          await this.updateUserPendingBalance(owner, -tx.balance_change);
+          await this.transactionService.confirmTransaction(tx.txid);
+        }
+      }
+    }
   }
 
   async getAddressOwner(address: string) {

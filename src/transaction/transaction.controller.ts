@@ -26,4 +26,12 @@ export class TransactionsController {
   async getByOwner(@Param('owner') owner) {
     return await this.transactionService.findAllByOwner(owner);
   }
+
+  @Get('unconfirmed/:username')
+  async findAllUnconfirmedByOwner(@Param('username') username) {
+    if (username) {
+      return await this.transactionService.findAllUnconfirmedByOwner(username);
+    }
+    throw new HttpException('username is required', HttpStatus.BAD_REQUEST);
+  }
 }

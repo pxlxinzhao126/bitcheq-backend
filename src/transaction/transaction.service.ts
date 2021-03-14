@@ -23,6 +23,7 @@ export class TransactionService {
     const newTransaction = {
       ...transactionDto,
       status: PENDING,
+      confirmed: false,
       owner,
       createdDate: new Date().getTime(),
     };
@@ -65,6 +66,13 @@ export class TransactionService {
       .exec();
   }
 
+  async findAllUnconfirmedByOwner(owner: string): Promise<Transaction[]> {
+    return this.transactionModel
+      .find({ owner, confirmed: false })
+      .sort({ createdDate: -1 })
+      .exec();
+  }
+
   async findPendingTransaction(txid: string): Promise<Transaction> {
     return this.transactionModel.findOne({ txid, status: PENDING }).exec();
   }
@@ -73,6 +81,14 @@ export class TransactionService {
     return this.transactionModel.findOneAndUpdate(
       { txid },
       { $set: { status: COMPLETED } },
+      { useFindAndModify: false },
+    );
+  }
+
+  async confirmTransaction(txid: string) {
+    return this.transactionModel.findOneAndUpdate(
+      { txid },
+      { $set: { confirmed: true } },
       { useFindAndModify: false },
     );
   }

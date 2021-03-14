@@ -29,8 +29,13 @@ export class Transaction {
   @Prop()
   is_green: boolean;
 
+  // status is an indicater whether balance_change is reflected on user balance
   @Prop()
   status: 'Pending' | 'Completed';
+
+  // confirmed is an indicater whether pending balance removed
+  @Prop()
+  confirmed: boolean;
 
   @Prop()
   owner: string;
