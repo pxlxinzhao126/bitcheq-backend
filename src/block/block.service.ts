@@ -130,6 +130,12 @@ export class BlockService {
     this.logger.debug(
       `${username} initiated withdraw of ${amount} to ${toAddress}`,
     );
+    if (+amount < 0.00002) {
+      throw new HttpException(
+        `Amount to withdraw must be over 0.00002 BTC`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
     if (await this.hasEnoughBalance(username, amount, toAddress)) {
       const res = await this.block.withdraw_from_addresses({
         amounts: amount,
