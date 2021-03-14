@@ -37,9 +37,7 @@ export class TransactionService {
     transactionDto: TransactionDto,
   ): Promise<Transaction> {
     const txid = transactionDto.txid;
-    this.logger.debug(
-      `update transaction ${txid} with ${JSON.stringify(transactionDto)}`,
-    );
+    this.logger.debug(`update transaction ${txid}`);
     return this.transactionModel.findOneAndUpdate(
       { txid },
       { ...transactionDto },

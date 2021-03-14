@@ -65,20 +65,21 @@ export class BlockService {
       );
       if (await this.isNewTransaction(data)) {
         response.operation = 'created';
-        await this.transactionService.create(
-          data, owner
-        );
+        await this.transactionService.create(data, owner);
       } else {
         response.operation = 'updated';
         await this.transactionService.updateTransaction(data);
 
-        if (data?.confirmations > 3) {
-          this.logger.debug(`User ${owner} has ${data.balance_change} confirmed after ${data.confirmations} confirmations`)
+        if (data?.confirmations == 4) {
+          this.logger.debug(
+            `User ${owner} has ${data.balance_change} confirmed after ${data.confirmations} confirmations`,
+          );
           await this.updateUserPendingBalance(owner, -data.balance_change);
         }
       }
 
       if (await this.isPendingTransaction(data)) {
+        // Withdraw webhook does not affect user balances
         if (+data.balance_change > 0) {
           await this.updateUserBalance(owner, data.balance_change);
           await this.updateUserPendingBalance(owner, data.balance_change);
@@ -100,10 +101,12 @@ export class BlockService {
     const addressEntity = await this.addressService.findOneByAddress(address);
     try {
       return addressEntity.owner;
-    } catch(e) {
-      throw new HttpException(`Address ${address} not found`, HttpStatus.BAD_REQUEST);
+    } catch (e) {
+      throw new HttpException(
+        `Address ${address} not found`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
-
   }
 
   private isValidAddressNotification(webhook_response: any) {
@@ -123,28 +126,30 @@ export class BlockService {
   }
 
   async updateUserBalance(username: string, balance_change: number) {
-    this.logger.debug(
-      `Update user ${username} balance ${balance_change}`,
-    );
+    this.logger.debug(`Update user ${username} balance ${balance_change}`);
     await this.userService.deposit(username, balance_change);
     // User returned from findOneAndUpdate has the old balance
-    const updatedUser = await this.userService.findOneByName(
-      username
-    );
+    const updatedUser = await this.userService.findOneByName(username);
     this.logger.debug(
       `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance} (delta: ${balance_change})`,
     );
   }
 
-  async updateUserPendingBalance(username: string, balance_change: number) {
+  async updateUserPendingBalance(
+    username: string,
+    balance_change: number,
+  ): Promise<void> {
     this.logger.debug(
-      `Update user ${username} pending balance ${balance_change}`
+      `Update user ${username} pending balance ${balance_change}`,
     );
-    await this.userService.updateUserPendingBalance(username, balance_change);
+    const currentUser = await this.userService.findOneByName(username);
+    if (currentUser.pendingBtcBalance + balance_change >= 0) {
+      // Pending balance is always positive. Withdraw happens immediately which does not require confirmation
+      await this.userService.updateUserPendingBalance(username, balance_change);
+    }
+
     // User returned from findOneAndUpdate has the old balance
-    const updatedUser = await this.userService.findOneByName(
-      username
-    );
+    const updatedUser = await this.userService.findOneByName(username);
     this.logger.debug(
       `User ${updatedUser?.username} has pending balance ${updatedUser?.pendingBtcBalance} (delta: ${balance_change})`,
     );
@@ -160,7 +165,11 @@ export class BlockService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const checkResult = await this.preWithdrawCheck(username, amount, toAddress);
+    const checkResult = await this.preWithdrawCheck(
+      username,
+      amount,
+      toAddress,
+    );
     if (checkResult) {
       const { totalWithdraw } = checkResult;
       const res = await this.block.withdraw_from_addresses({
@@ -170,12 +179,11 @@ export class BlockService {
       });
 
       // Withdraw transaction updates balance immediately. Because webhook's address can be random.
+      // The spend total amount is just an estimation, network fee might vary.
       await this.userService.spend(username, checkResult.totalWithdraw);
 
       // User returned from findOneAndUpdate has the old balance
-      const updatedUser = await this.userService.findOneByName(
-        username,
-      );
+      const updatedUser = await this.userService.findOneByName(username);
 
       this.logger.debug(
         `User ${updatedUser?.username} has balance ${updatedUser?.btcBalance} (delta: ${totalWithdraw})`,
@@ -226,8 +234,8 @@ export class BlockService {
               Expected balance: ${currentBalance - totalWithdraw}
             `);
           return {
-            totalWithdraw
-          }
+            totalWithdraw,
+          };
         }
       }
     }
