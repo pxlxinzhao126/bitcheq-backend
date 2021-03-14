@@ -88,7 +88,12 @@ export class BlockService {
 
   async getAddressOwner(address: string) {
     const addressEntity = await this.addressService.findOneByAddress(address);
-    return addressEntity.owner;
+    try {
+      return addressEntity.owner;
+    } catch(e) {
+      throw new HttpException(`Address ${address} not found`, HttpStatus.BAD_REQUEST);
+    }
+
   }
 
   private isValidAddressNotification(webhook_response: any) {
