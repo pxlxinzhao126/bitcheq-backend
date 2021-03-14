@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import * as BlockIo from 'block_io';
 import { AddressService } from 'src/address/address.service';
-import { TransactionDto } from 'src/transaction/transaction.dto';
 import { TransactionService } from 'src/transaction/transaction.service';
 import { UsersService } from 'src/users/users.service';
 
