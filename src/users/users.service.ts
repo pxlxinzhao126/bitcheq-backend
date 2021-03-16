@@ -69,7 +69,7 @@ export class UsersService {
       const { username, btcBalance, pendingBtcBalance, createdDate } = user;
       return { username, btcBalance, pendingBtcBalance, createdDate };
     } else {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      return null;
     }
   }
 }

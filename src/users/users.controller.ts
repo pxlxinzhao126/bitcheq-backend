@@ -16,9 +16,9 @@ export class UsersController {
 
   @Post('create')
   async createUser(@Body() userDto: UserDto) {
-    if (!userDto.username || !userDto.password) {
+    if (!userDto.username) {
       throw new HttpException(
-        'Must provide username and password',
+        'Must provide username',
         HttpStatus.BAD_REQUEST,
       );
     }

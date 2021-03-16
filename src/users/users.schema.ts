@@ -9,9 +9,6 @@ export class User {
   username: string;
 
   @Prop({ required: true })
-  password: string;
-
-  @Prop({ required: true })
   btcBalance: number;
 
   @Prop()

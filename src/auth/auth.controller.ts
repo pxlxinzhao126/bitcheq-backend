@@ -7,11 +7,6 @@ export class AuthController {
     return req.user;
   }
 
-  @Get('/hello')
-  getHello(@Req() request: Request): string {
-    return 'Hello ' + request['user']?.email + '!';
-  }
-
   @Get()
   helloWorld(@Req() request: Request): string {
     return 'Hello World';
