@@ -20,7 +20,7 @@ export class BlockController {
     }
     throw new HttpException('username is required', HttpStatus.BAD_REQUEST);
   }
- 
+
   @Get('getTransactionFromBlock')
   async getTransactionFromBlock(@Query('address') address) {
     if (address) {

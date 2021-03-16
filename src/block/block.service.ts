@@ -53,7 +53,9 @@ export class BlockService {
   }
 
   async writeTransaction(webhook_response): Promise<WebhookResult> {
-    this.logger.debug(`start to write transactions ${JSON.stringify(webhook_response)}`);
+    this.logger.debug(
+      `start to write transactions ${JSON.stringify(webhook_response)}`,
+    );
     const data = webhook_response?.data;
     let response: WebhookResult = { txid: null, operation: null };
 
@@ -72,7 +74,7 @@ export class BlockService {
           response.operation = 'updated';
           await this.transactionService.updateTransaction(data);
         }
-  
+
         if (await this.isPendingTransaction(data)) {
           // Withdraw webhook does not affect user balances
           if (+data.balance_change > 0) {
@@ -85,11 +87,8 @@ export class BlockService {
         }
       } else {
         response.operation = 'not modified';
-        this.logger.debug(
-          `Owner not found for address ${data.address}`,
-        );
+        this.logger.debug(`Owner not found for address ${data.address}`);
       }
-
     } else {
       this.logger.debug(
         `Received non-address type webhook ${JSON.stringify(webhook_response)}`,
@@ -101,23 +100,43 @@ export class BlockService {
 
   async confirmTransactions(owner: string) {
     this.logger.debug(`confirmTransactions called by ${owner}`);
-    const unconfirmedTransactions = await this.transactionService.findAllUnconfirmedByOwner(owner);
+    const unconfirmedTransactions = await this.transactionService.findAllUnconfirmedByOwner(
+      owner,
+    );
     if (unconfirmedTransactions && unconfirmedTransactions.length > 0) {
-      const blockTxs = await this.block.get_transactions({ type: 'received', addresses: unconfirmedTransactions[0].address });
-      this.logger.debug(`Query received transactions by address of ${owner} ${JSON.stringify(blockTxs)}`);
+      const blockTxs = await this.block.get_transactions({
+        type: 'received',
+        addresses: unconfirmedTransactions[0].address,
+      });
+      this.logger.debug(
+        `Query received transactions by address of ${owner} ${JSON.stringify(
+          blockTxs,
+        )}`,
+      );
       const txs = blockTxs?.data?.txs || [];
 
       for (let unconfirmedTx of unconfirmedTransactions) {
-
         const lookup = txs.find((it) => it.txid === unconfirmedTx.txid);
-        if (lookup && unconfirmedTx.confirmations < lookup.confirmations ) {
-          this.logger.debug(`Update transaction ${unconfirmedTx.txid} with confirmations ${lookup.confirmations}`);
-          await this.transactionService.updateConfirmation(unconfirmedTx.txid, lookup.confirmations);
+        if (lookup && unconfirmedTx.confirmations < lookup.confirmations) {
+          this.logger.debug(
+            `Update transaction ${unconfirmedTx.txid} with confirmations ${lookup.confirmations}`,
+          );
+          await this.transactionService.updateConfirmation(
+            unconfirmedTx.txid,
+            lookup.confirmations,
+          );
 
           if (lookup.confirmations >= 4 && unconfirmedTx.confirmed === false) {
-            this.logger.debug(`Confirm transaction ${unconfirmedTx.txid}, deduct pending balance by ${unconfirmedTx.balance_change}`);
-            await this.updateUserPendingBalance(owner, -unconfirmedTx.balance_change);
-            await this.transactionService.confirmTransaction(unconfirmedTx.txid);
+            this.logger.debug(
+              `Confirm transaction ${unconfirmedTx.txid}, deduct pending balance by ${unconfirmedTx.balance_change}`,
+            );
+            await this.updateUserPendingBalance(
+              owner,
+              -unconfirmedTx.balance_change,
+            );
+            await this.transactionService.confirmTransaction(
+              unconfirmedTx.txid,
+            );
           }
         }
       }
@@ -125,7 +144,10 @@ export class BlockService {
   }
 
   async getTransactionFromBlock(address: string) {
-    const tx = await this.block.get_transactions({ type: 'received', addresses: address });
+    const tx = await this.block.get_transactions({
+      type: 'received',
+      addresses: address,
+    });
     return tx;
   }
 

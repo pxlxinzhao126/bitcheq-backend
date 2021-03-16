@@ -27,9 +27,7 @@ export class TransactionService {
       owner,
       createdDate: new Date().getTime(),
     };
-    this.logger.debug(
-      `create new transaction ${transactionDto.txid}`,
-    );
+    this.logger.debug(`create new transaction ${transactionDto.txid}`);
     const createdTransaction = new this.transactionModel(newTransaction);
     return createdTransaction.save();
   }

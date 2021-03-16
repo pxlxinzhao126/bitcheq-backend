@@ -17,10 +17,7 @@ export class UsersController {
   @Post('create')
   async createUser(@Body() userDto: UserDto) {
     if (!userDto.username) {
-      throw new HttpException(
-        'Must provide username',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException('Must provide username', HttpStatus.BAD_REQUEST);
     }
 
     if (!!(await this.userService.findOneByName(userDto.username))) {

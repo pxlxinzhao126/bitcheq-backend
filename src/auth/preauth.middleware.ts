@@ -16,7 +16,7 @@ const firebase_params = {
   clientC509CertUrl: serviceAccount.client_x509_cert_url,
 };
 
-const whitelist = ['block/webhook'];
+const whitelist = ['users', 'auth/login', 'users/create', 'block/webhook'];
 
 @Injectable()
 export class PreauthMiddleware implements NestMiddleware {
@@ -37,9 +37,8 @@ export class PreauthMiddleware implements NestMiddleware {
       return;
     }
 
-    // dev only
     if (!token) {
-      next();
+      this.accessDenied(req.url, res);
       return;
     }
 
