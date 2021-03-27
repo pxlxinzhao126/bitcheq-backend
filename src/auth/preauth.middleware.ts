@@ -50,39 +50,37 @@ export class PreauthMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: Function) {
-    const token = req.headers.authorization;
-
-    if (req.params['0'] === 'block/webhook') {
-      if (!this.validateIpForWebhook(req)) {
+    if (this.inWhitelist(req)) {
+      if (
+        req.params['0'] === 'block/webhook' &&
+        !this.validateIpForWebhook(req)
+      ) {
         this.accessDenied(req.url, res);
-        return;
+      } else {
+        next();
+      }
+    } else {
+      const token = req.headers.authorization;
+
+      if (!token) {
+        this.accessDenied(req.url, res);
+      } else {
+        this.defaultApp
+          .auth()
+          .verifyIdToken(token.replace('Bearer ', ''))
+          .then(async (decodedToken) => {
+            const user = {
+              email: decodedToken.email,
+            };
+            req['user'] = user;
+            next();
+          })
+          .catch((error) => {
+            console.error(error);
+            this.accessDenied(req.url, res);
+          });
       }
     }
-
-    if (this.inWhitelist(req)) {
-      next();
-      return;
-    }
-
-    if (!token) {
-      this.accessDenied(req.url, res);
-      return;
-    }
-
-    this.defaultApp
-      .auth()
-      .verifyIdToken(token.replace('Bearer ', ''))
-      .then(async (decodedToken) => {
-        const user = {
-          email: decodedToken.email,
-        };
-        req['user'] = user;
-        next();
-      })
-      .catch((error) => {
-        console.error(error);
-        this.accessDenied(req.url, res);
-      });
   }
 
   private accessDenied(url: string, res: Response) {
@@ -95,24 +93,22 @@ export class PreauthMiddleware implements NestMiddleware {
   }
 
   private validateIpForWebhook(req): boolean {
-      var ip =
-        req.headers['x-forwarded-for'] ||
-        req.connection.remoteAddress ||
-        req.socket.remoteAddress ||
-        (req.connection['socket']
-          ? req.connection['socket'].remoteAddress
-          : null);
+    var ip =
+      req.headers['x-forwarded-for'] ||
+      req.connection.remoteAddress ||
+      req.socket.remoteAddress ||
+      (req.connection['socket']
+        ? req.connection['socket'].remoteAddress
+        : null);
 
-      this.logger.debug(`Request <<${req.params['0']}>> from IP <<${ip}>>`);
+    this.logger.debug(`Request <<${req.params['0']}>> from IP <<${ip}>>`);
 
-      if (webhookIpWhitelist.indexOf(ip) > -1) {
-        return true;
-      }
-
-      this.logger.error(
-        `Request <<${req.params['0']}>> from IP <<${ip}>> access denied`,
-      );
+    if (webhookIpWhitelist.indexOf(ip) > -1) {
+      return true;
+    } else {
+      this.logger.error(`IP is not whitelisted`);
       return false;
+    }
   }
 
   private inWhitelist(req): boolean {
