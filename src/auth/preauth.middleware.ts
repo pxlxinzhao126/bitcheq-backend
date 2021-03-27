@@ -52,9 +52,11 @@ export class PreauthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
 
-    if (!this.validateIpForWebhook(req)) {
-      this.accessDenied(req.url, res);
-      return;
+    if (req.params['0'] === 'block/webhook') {
+      if (!this.validateIpForWebhook(req)) {
+        this.accessDenied(req.url, res);
+        return;
+      }
     }
 
     if (this.inWhitelist(req)) {
@@ -93,7 +95,6 @@ export class PreauthMiddleware implements NestMiddleware {
   }
 
   private validateIpForWebhook(req): boolean {
-    if (req.params['0'] === 'block/webhook') {
       var ip =
         req.headers['x-forwarded-for'] ||
         req.connection.remoteAddress ||
@@ -112,7 +113,6 @@ export class PreauthMiddleware implements NestMiddleware {
         `Request <<${req.params['0']}>> from IP <<${ip}>> access denied`,
       );
       return false;
-    }
   }
 
   private inWhitelist(req): boolean {
