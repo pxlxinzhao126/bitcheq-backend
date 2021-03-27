@@ -16,7 +16,12 @@ const firebase_params = {
   clientC509CertUrl: serviceAccount.client_x509_cert_url,
 };
 
-const whitelist = ['users/verifyEmail', 'auth/login', 'users/create', 'block/webhook'];
+const whitelist = [
+  'users/verifyEmail',
+  'auth/login',
+  'users/create',
+  'block/webhook',
+];
 
 @Injectable()
 export class PreauthMiddleware implements NestMiddleware {
@@ -33,10 +38,13 @@ export class PreauthMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
-    var ip = req.headers['x-forwarded-for'] || 
-      req.connection.remoteAddress || 
+    var ip =
+      req.headers['x-forwarded-for'] ||
+      req.connection.remoteAddress ||
       req.socket.remoteAddress ||
-      (req.connection['socket'] ? req.connection['socket'].remoteAddress : null);
+      (req.connection['socket']
+        ? req.connection['socket'].remoteAddress
+        : null);
 
     this.logger.debug(`Request <<${req.params['0']}>> from IP <<${ip}>>`);
 

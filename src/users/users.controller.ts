@@ -34,13 +34,10 @@ export class UsersController {
       throw new HttpException('Must provide username', HttpStatus.BAD_REQUEST);
     }
 
-    if (!!(await this.userService.findOneByName(userDto.username))) {
+    if (!!await this.userService.findOneByName(userDto.username)) {
       throw new HttpException('Username taken', HttpStatus.BAD_REQUEST);
     }
 
-    return this.userService.mapUser(
-      await this.userService.create(userDto),
-    );
+    return this.userService.mapUser(await this.userService.create(userDto));
   }
-
 }

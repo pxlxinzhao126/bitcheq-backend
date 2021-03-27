@@ -109,9 +109,7 @@ export class BlockService {
         addresses: unconfirmedTransactions[0].address,
       });
       this.logger.debug(
-        `Recent transactions of ${owner} ${JSON.stringify(
-          blockTxs,
-        )}`,
+        `Recent transactions of ${owner} ${JSON.stringify(blockTxs)}`,
       );
       const txs = blockTxs?.data?.txs || [];
 
@@ -310,11 +308,20 @@ export class BlockService {
       const notifications = response.data.notifications;
       for (let n of notifications) {
         this.logger.debug(`Deleting notification ${n.notification_id}`);
-        await this.block.delete_notification({ notification_id: n.notification_id });
+        await this.block.delete_notification({
+          notification_id: n.notification_id,
+        });
       }
     }
-    const newNotification = await this.block.create_notification({ type: 'account', url: 'https://bitcheq.herokuapp.com/block/webhook' });
-    this.logger.debug(`Successfully creat a new notification ${JSON.stringify(newNotification)}`);
+    const newNotification = await this.block.create_notification({
+      type: 'account',
+      url: 'https://bitcheq.herokuapp.com/block/webhook',
+    });
+    this.logger.debug(
+      `Successfully creat a new notification ${JSON.stringify(
+        newNotification,
+      )}`,
+    );
     return newNotification;
   }
 }
