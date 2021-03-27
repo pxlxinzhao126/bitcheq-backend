@@ -64,7 +64,16 @@ export class UsersService {
     );
   }
 
-  mapUserToReturn(user: User) {
+  mapUser(user: User) {
+    if (user) {
+      const { username, btcBalance, pendingBtcBalance, createdDate } = user;
+      return { username, btcBalance, pendingBtcBalance, createdDate };
+    } else {
+      return null;
+    }
+  }
+
+  mapUserEmailOnly(user: User) {
     return user ? { username: user.username } : null;
   }
 }
