@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware } from '@nestjs/common';
+import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as firebase from 'firebase-admin';
 import * as serviceAccount from './firebase.json';
@@ -20,6 +20,8 @@ const whitelist = ['users/verifyEmail', 'auth/login', 'users/create', 'block/web
 
 @Injectable()
 export class PreauthMiddleware implements NestMiddleware {
+  private readonly logger = new Logger(PreauthMiddleware.name);
+
   private defaultApp: any;
 
   constructor() {
@@ -31,6 +33,12 @@ export class PreauthMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
+    var ip = req.headers['x-forwarded-for'] || 
+      req.connection.remoteAddress || 
+      req.socket.remoteAddress ||
+      (req.connection['socket'] ? req.connection['socket'].remoteAddress : null);
+
+    this.logger.debug(`Request <<${req.params['0']}>> from IP <<${ip}>>`);
 
     if (this.inWhitelist(req)) {
       next();
