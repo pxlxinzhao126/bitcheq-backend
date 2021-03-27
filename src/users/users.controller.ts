@@ -14,6 +14,13 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private userService: UsersService) {}
 
+  @Get()
+  async getUserByName(@Query('username') username) {
+    return this.userService.mapUserToReturn(
+      await this.userService.findOneByName(username),
+    );
+  }
+
   @Post('create')
   async createUser(@Body() userDto: UserDto) {
     if (!userDto.username) {
@@ -29,10 +36,4 @@ export class UsersController {
     );
   }
 
-  @Get()
-  async getUserByName(@Query('username') username) {
-    return this.userService.mapUserToReturn(
-      await this.userService.findOneByName(username),
-    );
-  }
 }
