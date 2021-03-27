@@ -109,7 +109,7 @@ export class BlockService {
         addresses: unconfirmedTransactions[0].address,
       });
       this.logger.debug(
-        `Query received transactions by address of ${owner} ${JSON.stringify(
+        `Recent transactions of ${owner} ${JSON.stringify(
           blockTxs,
         )}`,
       );
@@ -119,14 +119,10 @@ export class BlockService {
         const lookup = txs.find((it) => it.txid === unconfirmedTx.txid);
         if (lookup && unconfirmedTx.confirmations < lookup.confirmations) {
           this.logger.debug(
-            `Update transaction ${unconfirmedTx.txid} with confirmations ${lookup.confirmations}`,
-          );
-          await this.transactionService.updateConfirmation(
-            unconfirmedTx.txid,
-            lookup.confirmations,
+            `Transaction ${unconfirmedTx.txid} has ${lookup.confirmations} confirmations`,
           );
 
-          if (lookup.confirmations >= 4 && unconfirmedTx.confirmed === false) {
+          if (lookup.confirmations >= 4) {
             this.logger.debug(
               `Confirm transaction ${unconfirmedTx.txid}, deduct pending balance by ${unconfirmedTx.balance_change}`,
             );
