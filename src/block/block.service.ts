@@ -98,6 +98,11 @@ export class BlockService {
     return response;
   }
 
+  /**
+   * Find all unconfirmed transactions
+   * If any of it has confirmation >=4
+   * Set confirmed to true
+   */
   async confirmTransactions(owner: string) {
     this.logger.debug(`confirmTransactions called by ${owner}`);
     const unconfirmedTransactions = await this.transactionService.findAllUnconfirmedByOwner(

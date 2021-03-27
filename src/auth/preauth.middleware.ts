@@ -23,6 +23,19 @@ const whitelist = [
   'block/webhook',
 ];
 
+const webhookIpWhitelist = [
+  '::1',
+  '99.245.188.170',
+  '45.56.79.5',
+  '45.56.123.170',
+  '45.33.20.161',
+  '45.33.4.167',
+  '2600:3c00::f03c:91ff:fe33:2e14',
+  '2600:3c00::f03c:91ff:fe89:bb9b',
+  '2600:3c00::f03c:91ff:fe33:d082',
+  '2600:3c00::f03c:92ff:fe5e:4219',
+];
+
 @Injectable()
 export class PreauthMiddleware implements NestMiddleware {
   private readonly logger = new Logger(PreauthMiddleware.name);
@@ -38,15 +51,11 @@ export class PreauthMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: Function) {
     const token = req.headers.authorization;
-    var ip =
-      req.headers['x-forwarded-for'] ||
-      req.connection.remoteAddress ||
-      req.socket.remoteAddress ||
-      (req.connection['socket']
-        ? req.connection['socket'].remoteAddress
-        : null);
 
-    this.logger.debug(`Request <<${req.params['0']}>> from IP <<${ip}>>`);
+    if (!this.validateIpForWebhook(req)) {
+      this.accessDenied(req.url, res);
+      return;
+    }
 
     if (this.inWhitelist(req)) {
       next();
@@ -81,6 +90,29 @@ export class PreauthMiddleware implements NestMiddleware {
       path: url,
       message: 'Access Denied',
     });
+  }
+
+  private validateIpForWebhook(req): boolean {
+    if (req.params['0'] === 'block/webhook') {
+      var ip =
+        req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        (req.connection['socket']
+          ? req.connection['socket'].remoteAddress
+          : null);
+
+      this.logger.debug(`Request <<${req.params['0']}>> from IP <<${ip}>>`);
+
+      if (webhookIpWhitelist.indexOf(ip) > -1) {
+        return true;
+      }
+
+      this.logger.error(
+        `Request <<${req.params['0']}>> from IP <<${ip}>> access denied`,
+      );
+      return false;
+    }
   }
 
   private inWhitelist(req): boolean {
