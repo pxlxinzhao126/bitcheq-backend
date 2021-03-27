@@ -73,4 +73,9 @@ export class BlockController {
     const res = await this.blockService.writeTransaction(webhook_response);
     return `Transaction ${res.operation}: ${res?.txid}`;
   }
+
+  @Post('notifications')
+  async resetNotifications() {
+    return await this.blockService.resetNotifications();
+  }
 }

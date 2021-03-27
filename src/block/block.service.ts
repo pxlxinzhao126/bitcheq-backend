@@ -305,4 +305,20 @@ export class BlockService {
       to_addresses: toAddress,
     });
   }
+
+  async resetNotifications() {
+    const response = await this.block.list_notifications();
+    this.logger.debug(`Listing notification ${JSON.stringify(response)}`);
+
+    if (response?.data?.notifications?.length > 0) {
+      const notifications = response.data.notifications;
+      for (let n of notifications) {
+        this.logger.debug(`Deleting notification ${n.notification_id}`);
+        await this.block.delete_notification({ notification_id: n.notification_id });
+      }
+    }
+    const newNotification = await this.block.create_notification({ type: 'account', url: 'https://bitcheq.herokuapp.com/block/webhook' });
+    this.logger.debug(`Successfully creat a new notification ${JSON.stringify(newNotification)}`);
+    return newNotification;
+  }
 }
