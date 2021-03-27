@@ -24,9 +24,6 @@ export class Transaction {
   amount_received: number;
 
   @Prop()
-  confirmations: number;
-
-  @Prop()
   is_green: boolean;
 
   // status is an indicater whether balance_change is reflected on user balance

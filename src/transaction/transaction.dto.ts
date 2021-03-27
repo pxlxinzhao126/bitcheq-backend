@@ -5,7 +5,6 @@ export interface TransactionDto {
   balance_change?: number;
   amount_sent?: number;
   amount_received?: number;
-  confirmations?: number;
   is_green?: boolean;
   owner?: string;
   createdDate?: number;

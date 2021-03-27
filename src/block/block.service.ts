@@ -117,7 +117,7 @@ export class BlockService {
 
       for (let unconfirmedTx of unconfirmedTransactions) {
         const lookup = txs.find((it) => it.txid === unconfirmedTx.txid);
-        if (lookup && unconfirmedTx.confirmations < lookup.confirmations) {
+        if (lookup) {
           this.logger.debug(
             `Transaction ${unconfirmedTx.txid} has ${lookup.confirmations} confirmations`,
           );
