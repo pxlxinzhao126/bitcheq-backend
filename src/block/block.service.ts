@@ -5,6 +5,8 @@ import { TransactionService } from 'src/transaction/transaction.service';
 import { UsersService } from 'src/users/users.service';
 
 export type WebhookResult = { txid: string; operation: string };
+const COMFIRMATIONS_NEEDED_TO_CONFIRM = 1;
+
 @Injectable()
 export class BlockService {
   block: BlockIo;
@@ -76,11 +78,12 @@ export class BlockService {
         }
 
         if (await this.isPendingTransaction(data)) {
-          // Withdraw webhook does not affect user balances
           if (+data.balance_change > 0) {
             await this.updateUserBalance(owner, data.balance_change);
             await this.updateUserPendingBalance(owner, data.balance_change);
           } else {
+            // Withdraw webhook does not affect user balances
+            // Balance is already deducted when user initiate withdraw
             this.logger.debug(`withdraw transaction does not update balance`);
           }
           await this.transactionService.completeTransaction(data.txid);
@@ -104,35 +107,25 @@ export class BlockService {
    * Set confirmed to true
    */
   async confirmTransactions(owner: string) {
-    this.logger.debug(`confirmTransactions called by ${owner}`);
     const unconfirmedTransactions = await this.transactionService.findAllUnconfirmedByOwner(
       owner,
     );
     if (unconfirmedTransactions && unconfirmedTransactions.length > 0) {
-      const blockTxs = await this.block.get_transactions({
-        type: 'received',
-        addresses: unconfirmedTransactions[0].address,
-      });
-      const blockTxsSent = await this.block.get_transactions({
-        type: 'sent',
-        addresses: unconfirmedTransactions[0].address,
-      });
-      const txs = blockTxs?.data?.txs || [];
-      const txsSent = blockTxsSent?.data?.txs || [];
-      const txsAll = [...txs, ...txsSent];
-
       this.logger.debug(
-        `Recent transactions of ${owner} ${JSON.stringify(txsAll)}`,
+        `${owner}: Has ${unconfirmedTransactions.length} unconfirmed transactions`,
+      );
+      const txsAll = await this.getRecentTransactionsFromBlock(
+        unconfirmedTransactions,
       );
 
       for (let unconfirmedTx of unconfirmedTransactions) {
         const lookup = txsAll.find((it) => it.txid === unconfirmedTx.txid);
         if (lookup) {
           this.logger.debug(
-            `Transaction ${unconfirmedTx.txid} has ${lookup.confirmations} confirmations`,
+            `Unconfirmed transaction ${unconfirmedTx.txid} has ${lookup.confirmations} confirmations`,
           );
 
-          if (lookup.confirmations >= 1) {
+          if (lookup.confirmations >= COMFIRMATIONS_NEEDED_TO_CONFIRM) {
             // only update balance for deposit
             if (unconfirmedTx.balance_change > 0) {
               this.logger.debug(
@@ -152,15 +145,24 @@ export class BlockService {
           }
         }
       }
+    } else {
+      this.logger.debug(`${owner}: All transactions are confirmed`);
     }
   }
 
-  async getTransactionFromBlock(address: string) {
-    const tx = await this.block.get_transactions({
+  private async getRecentTransactionsFromBlock(unconfirmedTransactions) {
+    const blockTxs = await this.block.get_transactions({
       type: 'received',
-      addresses: address,
+      addresses: unconfirmedTransactions[0].address,
     });
-    return tx;
+    const blockTxsSent = await this.block.get_transactions({
+      type: 'sent',
+      addresses: unconfirmedTransactions[0].address,
+    });
+    const txs = blockTxs?.data?.txs || [];
+    const txsSent = blockTxsSent?.data?.txs || [];
+    const txsAll = [...txs, ...txsSent];
+    return txsAll;
   }
 
   async getAddressOwner(address: string) {
@@ -207,7 +209,9 @@ export class BlockService {
       `Update user ${username} pending balance ${balance_change}`,
     );
     const currentUser = await this.userService.findOneByName(username);
-    if (currentUser.pendingBtcBalance + balance_change >= 0) {
+
+    // use one satoshi to neglect float number problem
+    if (currentUser.pendingBtcBalance + balance_change >= -0.00000001) {
       // Pending balance is always positive. Withdraw happens immediately which does not require confirmation
       this.logger.debug(
         `updateUserPendingBalance ${username} with delta ${balance_change}`,
@@ -216,7 +220,12 @@ export class BlockService {
     } else {
       this.logger.error(`
       Prevented pending balance going to negative for user ${username}. 
-      Pending balance is ${currentUser.pendingBtcBalance} but balance change is ${balance_change}`);
+      Pending balance is ${
+        currentUser.pendingBtcBalance
+      } but balance change is ${balance_change}
+      Expected balance would be ${
+        currentUser.pendingBtcBalance + balance_change
+      }`);
     }
 
     // User returned from findOneAndUpdate has the old balance
@@ -253,7 +262,7 @@ export class BlockService {
         to_addresses: toAddress,
       });
 
-      // Withdraw transaction updates balance immediately. Because webhook's address can be random.
+      // Withdraw transaction updates balance immediately.
       // The spend total amount is just an estimation, network fee might vary.
       await this.userService.spend(username, checkResult.totalWithdraw);
 
@@ -279,35 +288,34 @@ export class BlockService {
     amount: string,
     toAddress: string,
   ): Promise<any> {
+    this.logger.debug(`${username}: start preWithdrawCheck`);
     const user = await this.userService.findOneByName(username);
     const currentBalance = user.btcBalance - user.pendingBtcBalance;
 
     if (+currentBalance > +amount) {
-      let estimatedResult;
-      try {
-        estimatedResult = await this.estimate(amount, toAddress);
-      } catch (e) {
-        this.logger.debug(`Estimation failed. ${JSON.stringify(e.data)}`);
-        throw new HttpException(
-          'Not enough total balance',
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+      this.logger.debug(
+        `${username}: currenet blance is greater than withdraw amount`,
+      );
+      const estimatedResult = await this.estimateFromBlock(amount, toAddress);
 
       if (estimatedResult && estimatedResult.data) {
-        const { estimated_network_fee, blockio_fee } = estimatedResult.data;
-        if (estimated_network_fee && blockio_fee) {
-          const totalWithdraw = +amount + +estimated_network_fee + +blockio_fee;
+        this.logger.debug(
+          `${username}: estimatedResult ${JSON.stringify(estimatedResult)}`,
+        );
 
+        const { estimated_network_fee, blockio_fee } = estimatedResult.data;
+        const totalWithdraw = +amount + +estimated_network_fee + +blockio_fee;
+
+        if (+currentBalance >= totalWithdraw) {
           this.logger.debug(`
-              Withdraw estimation for User ${username}
-              Current balance: ${currentBalance}
-              Amount: ${amount}
-              Estimated Network Fee: ${estimated_network_fee}
-              BlockIo Fee: ${blockio_fee}
-              Total: ${totalWithdraw}
-              Expected balance: ${currentBalance - totalWithdraw}
-            `);
+            Withdraw estimation for User ${username}
+            Current balance: ${currentBalance}
+            Amount: ${amount}
+            Estimated Network Fee: ${estimated_network_fee}
+            BlockIo Fee: ${blockio_fee}
+            Total: ${totalWithdraw}
+            Expected balance: ${currentBalance - totalWithdraw}
+          `);
           return {
             totalWithdraw,
           };
@@ -315,7 +323,23 @@ export class BlockService {
       }
     }
 
+    this.notEnoughBalance();
     return false;
+  }
+
+  private async estimateFromBlock(amount: string, toAddress: string) {
+    let estimatedResult;
+    try {
+      estimatedResult = await this.estimate(amount, toAddress);
+    } catch (e) {
+      this.logger.debug(`Estimation failed. ${JSON.stringify(e.data)}`);
+      this.notEnoughBalance();
+    }
+    return estimatedResult;
+  }
+
+  private notEnoughBalance() {
+    throw new HttpException('Not enough total balance', HttpStatus.BAD_REQUEST);
   }
 
   async estimate(amount: string, toAddress: string) {

@@ -26,11 +26,12 @@ export class Transaction {
   @Prop()
   is_green: boolean;
 
-  // status is an indicater whether balance_change is reflected on user balance
+  // When webhook is received, create a new transaction with pending status
+  // Apply balance change to user balance, and then set status to complete
   @Prop()
   status: 'Pending' | 'Completed';
 
-  // confirmed is an indicater whether pending balance removed
+  // When deposit transaction is confirmed (confimations > 4), remove pending balance.
   @Prop()
   confirmed: boolean;
 
