@@ -15,7 +15,6 @@ export class UsersService {
       pendingBtcBalance: 0,
       createdDate: new Date().getTime(),
     });
-    console.log('newUser', newUser);
     return newUser.save();
   }
 
