@@ -4,7 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Post,
-  Req
+  Req,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UsersService } from './users.service';
@@ -32,10 +32,10 @@ export class UsersController {
   @Post('create')
   async createUser(@Req() request: Request) {
     const username = request['user'] as string;
-    if (!!await this.userService.findOneByName(username)) {
+    if (!!(await this.userService.findOneByName(username))) {
       throw new HttpException('Username taken', HttpStatus.BAD_REQUEST);
     }
 
-    return this.userService.mapUser(await this.userService.create( username ));
+    return this.userService.mapUser(await this.userService.create(username));
   }
 }

@@ -1,10 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { BlockService } from './block.service';
 
@@ -24,7 +18,7 @@ export class BlockController {
     const { amount, toAddress } = withdraw_data;
     const res = await this.blockService.withdraw(username, amount, toAddress);
     return res;
-  } 
+  }
 
   @Post('confirm')
   async confirm(@Req() request: Request) {

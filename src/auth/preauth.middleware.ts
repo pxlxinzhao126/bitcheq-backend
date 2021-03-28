@@ -16,11 +16,7 @@ const firebase_params = {
   clientC509CertUrl: serviceAccount.client_x509_cert_url,
 };
 
-const whitelist = [
-  'users/verifyEmail',
-  'auth/login',
-  'block/webhook',
-];
+const whitelist = ['users/verifyEmail', 'auth/login', 'block/webhook'];
 
 const webhookIpWhitelist = [
   '::1',
