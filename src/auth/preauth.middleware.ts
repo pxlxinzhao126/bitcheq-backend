@@ -50,9 +50,6 @@ export class PreauthMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: Function) {
-    next();
-    return;
-
     if (this.inWhitelist(req)) {
       if (
         req.params['0'] === 'block/webhook' &&
