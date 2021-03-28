@@ -136,9 +136,11 @@ export class BlockService {
             // only update balance for deposit
             if (unconfirmedTx.balance_change > 0) {
               this.logger.debug(
-                `Confirm transaction ${JSON.stringify(unconfirmedTx)}, deduct pending balance by ${unconfirmedTx.amount_received}`,
+                `Confirm transaction ${JSON.stringify(
+                  unconfirmedTx,
+                )}, deduct pending balance by ${unconfirmedTx.amount_received}`,
               );
-              
+
               await this.updateUserPendingBalance(
                 owner,
                 -unconfirmedTx.amount_received,
@@ -207,7 +209,9 @@ export class BlockService {
     const currentUser = await this.userService.findOneByName(username);
     if (currentUser.pendingBtcBalance + balance_change >= 0) {
       // Pending balance is always positive. Withdraw happens immediately which does not require confirmation
-      this.logger.debug(`updateUserPendingBalance ${username} with delta ${balance_change}`);
+      this.logger.debug(
+        `updateUserPendingBalance ${username} with delta ${balance_change}`,
+      );
       await this.userService.updateUserPendingBalance(username, balance_change);
     } else {
       this.logger.error(`
@@ -240,7 +244,9 @@ export class BlockService {
     if (checkResult) {
       const { totalWithdraw } = checkResult;
       const fromAddress = await this.getUserAddress(username);
-      this.logger.debug(`withdraw from address ${fromAddress.data.address} for user ${username}`);
+      this.logger.debug(
+        `withdraw from address ${fromAddress.data.address} for user ${username}`,
+      );
       const res = await this.block.withdraw_from_addresses({
         amounts: amount,
         from_addresses: fromAddress.data.address,

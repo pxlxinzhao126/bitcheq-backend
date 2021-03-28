@@ -5,7 +5,6 @@ import {
   HttpException,
   HttpStatus,
   Post,
-
   Req
 } from '@nestjs/common';
 import { Request } from 'express';
@@ -24,15 +23,15 @@ export class BlockController {
     throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
   }
 
-  @Get('getTransactionFromBlock')
-  async getTransactionFromBlock(@Req() request: Request) {
-    const userAddress = await this.getAddress(request);
-    const address = userAddress?.data?.address;
-    if (address) {
-      return await this.blockService.getTransactionFromBlock(address);
-    }
-    throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
-  }
+  // @Get('getTransactionFromBlock')
+  // async getTransactionFromBlock(@Req() request: Request) {
+  //   const userAddress = await this.getAddress(request);
+  //   const address = userAddress?.data?.address;
+  //   if (address) {
+  //     return await this.blockService.getTransactionFromBlock(address);
+  //   }
+  //   throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+  // }
 
   @Post('withdraw')
   async withdraw(@Body() withdraw_data, @Req() request: Request) {
@@ -42,12 +41,12 @@ export class BlockController {
     return res;
   }
 
-  @Post('estimate')
-  async estimate(@Body() withdraw_data) {
-    const { amount, toAddress } = withdraw_data;
-    const res = await this.blockService.estimate(amount, toAddress);
-    return res;
-  }
+  // @Post('estimate')
+  // async estimate(@Body() withdraw_data) {
+  //   const { amount, toAddress } = withdraw_data;
+  //   const res = await this.blockService.estimate(amount, toAddress);
+  //   return res;
+  // }
 
   @Post('confirm')
   async confirm(@Req() request: Request) {
