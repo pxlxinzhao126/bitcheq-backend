@@ -113,13 +113,19 @@ export class BlockService {
         type: 'received',
         addresses: unconfirmedTransactions[0].address,
       });
+      const blockTxsSent = await this.block.get_transactions({
+        type: 'sent',
+        addresses: unconfirmedTransactions[0].address,
+      });
       this.logger.debug(
         `Recent transactions of ${owner} ${JSON.stringify(blockTxs)}`,
       );
       const txs = blockTxs?.data?.txs || [];
+      const txsSent = blockTxsSent?.data?.txs || [];
+      const txsAll = [...txs, ...txsSent];
 
       for (let unconfirmedTx of unconfirmedTransactions) {
-        const lookup = txs.find((it) => it.txid === unconfirmedTx.txid);
+        const lookup = txsAll.find((it) => it.txid === unconfirmedTx.txid);
         if (lookup) {
           this.logger.debug(
             `Transaction ${unconfirmedTx.txid} has ${lookup.confirmations} confirmations`,
