@@ -228,7 +228,7 @@ export class BlockService {
     if (checkResult) {
       const { totalWithdraw } = checkResult;
       const fromAddress = await this.getUserAddress(username);
-      this.logger.debug(`withdraw from address ${fromAddress} for user ${username}`);
+      this.logger.debug(`withdraw from address ${fromAddress.data.address} for user ${username}`);
       const res = await this.block.withdraw_from_addresses({
         amounts: amount,
         from_addresses: fromAddress.data.address,
