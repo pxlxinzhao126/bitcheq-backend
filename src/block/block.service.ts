@@ -132,7 +132,7 @@ export class BlockService {
             `Transaction ${unconfirmedTx.txid} has ${lookup.confirmations} confirmations`,
           );
 
-          if (lookup.confirmations >= 4) {
+          if (lookup.confirmations >= 2) {
             // only update balance for deposit
             if (unconfirmedTx.balance_change > 0) {
               this.logger.debug(
