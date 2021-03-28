@@ -268,7 +268,7 @@ export class BlockService {
     toAddress: string,
   ): Promise<any> {
     const user = await this.userService.findOneByName(username);
-    const currentBalance = user.btcBalance;
+    const currentBalance = user.btcBalance - user.pendingBtcBalance;
 
     if (+currentBalance > +amount) {
       let estimatedResult;
