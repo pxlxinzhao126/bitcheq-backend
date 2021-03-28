@@ -5,8 +5,10 @@ import {
   HttpException,
   HttpStatus,
   Post,
-  Query,
+
+  Req
 } from '@nestjs/common';
+import { Request } from 'express';
 import { BlockService } from './block.service';
 
 @Controller('block')
@@ -14,24 +16,28 @@ export class BlockController {
   constructor(private blockService: BlockService) {}
 
   @Get('address')
-  async getAddress(@Query('username') username) {
+  async getAddress(@Req() request: Request) {
+    const username = request['user'] as string;
     if (username) {
       return await this.blockService.getUserAddress(username);
     }
-    throw new HttpException('username is required', HttpStatus.BAD_REQUEST);
+    throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
   }
 
   @Get('getTransactionFromBlock')
-  async getTransactionFromBlock(@Query('address') address) {
+  async getTransactionFromBlock(@Req() request: Request) {
+    const userAddress = await this.getAddress(request);
+    const address = userAddress?.data?.address;
     if (address) {
       return await this.blockService.getTransactionFromBlock(address);
     }
-    throw new HttpException('address is required', HttpStatus.BAD_REQUEST);
+    throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
   }
 
   @Post('withdraw')
-  async withdraw(@Body() withdraw_data) {
-    const { username, amount, toAddress } = withdraw_data;
+  async withdraw(@Body() withdraw_data, @Req() request: Request) {
+    const username = request['user'] as string;
+    const { amount, toAddress } = withdraw_data;
     const res = await this.blockService.withdraw(username, amount, toAddress);
     return res;
   }
@@ -44,9 +50,9 @@ export class BlockController {
   }
 
   @Post('confirm')
-  async confirm(@Body() data) {
-    const { user } = data;
-    const res = await this.blockService.confirmTransactions(user);
+  async confirm(@Req() request: Request) {
+    const username = request['user'] as string;
+    const res = await this.blockService.confirmTransactions(username);
     return res;
   }
 
