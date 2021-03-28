@@ -1,13 +1,12 @@
 import {
-  Body,
   Controller,
   Get,
   HttpException,
   HttpStatus,
   Post,
-  Query,
+  Req
 } from '@nestjs/common';
-import { UserDto } from './users.dto';
+import { Request } from 'express';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -15,29 +14,28 @@ export class UsersController {
   constructor(private userService: UsersService) {}
 
   @Get()
-  async getUserByName(@Query('username') username) {
+  async getUserByName(@Req() request: Request) {
+    const username = request['user'] as string;
     return this.userService.mapUser(
       await this.userService.findOneByName(username),
     );
   }
 
   @Get('verifyEmail')
-  async verifyEmailByName(@Query('username') username) {
+  async verifyEmailByName(@Req() request: Request) {
+    const username = request['user'] as string;
     return this.userService.mapUserEmailOnly(
       await this.userService.findOneByName(username),
     );
   }
 
   @Post('create')
-  async createUser(@Body() userDto: UserDto) {
-    if (!userDto.username) {
-      throw new HttpException('Must provide username', HttpStatus.BAD_REQUEST);
-    }
-
-    if (!!(await this.userService.findOneByName(userDto.username))) {
+  async createUser(@Req() request: Request) {
+    const username = request['user'] as string;
+    if (!!await this.userService.findOneByName(username)) {
       throw new HttpException('Username taken', HttpStatus.BAD_REQUEST);
     }
 
-    return this.userService.mapUser(await this.userService.create(userDto));
+    return this.userService.mapUser(await this.userService.create( username ));
   }
 }

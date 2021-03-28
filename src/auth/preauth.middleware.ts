@@ -19,7 +19,6 @@ const firebase_params = {
 const whitelist = [
   'users/verifyEmail',
   'auth/login',
-  'users/create',
   'block/webhook',
 ];
 

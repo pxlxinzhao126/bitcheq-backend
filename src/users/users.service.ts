@@ -8,14 +8,15 @@ import { User, UserDocument } from './users.schema';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(userDto: UserDto): Promise<User> {
-    const createdUser = new this.userModel({
-      ...userDto,
+  async create(username: string): Promise<User> {
+    const newUser = new this.userModel({
+      username: username,
       btcBalance: 0,
       pendingBtcBalance: 0,
       createdDate: new Date().getTime(),
     });
-    return createdUser.save();
+    console.log('newUser', newUser);
+    return newUser.save();
   }
 
   async spend(username, amount) {
