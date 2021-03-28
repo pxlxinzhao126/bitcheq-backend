@@ -117,12 +117,13 @@ export class BlockService {
         type: 'sent',
         addresses: unconfirmedTransactions[0].address,
       });
-      this.logger.debug(
-        `Recent transactions of ${owner} ${JSON.stringify(blockTxs)}`,
-      );
       const txs = blockTxs?.data?.txs || [];
       const txsSent = blockTxsSent?.data?.txs || [];
       const txsAll = [...txs, ...txsSent];
+
+      this.logger.debug(
+        `Recent transactions of ${owner} ${JSON.stringify(txsAll)}`,
+      );
 
       for (let unconfirmedTx of unconfirmedTransactions) {
         const lookup = txsAll.find((it) => it.txid === unconfirmedTx.txid);
