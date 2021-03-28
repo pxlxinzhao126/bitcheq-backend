@@ -133,13 +133,17 @@ export class BlockService {
           );
 
           if (lookup.confirmations >= 4) {
-            this.logger.debug(
-              `Confirm transaction ${unconfirmedTx.txid}, deduct pending balance by ${unconfirmedTx.balance_change}`,
-            );
-            await this.updateUserPendingBalance(
-              owner,
-              -unconfirmedTx.balance_change,
-            );
+            // only update balance for deposit
+            if (unconfirmedTx.balance_change > 0) {
+              this.logger.debug(
+                `Confirm transaction ${unconfirmedTx.txid}, deduct pending balance by ${unconfirmedTx.balance_change}`,
+              );
+              
+              await this.updateUserPendingBalance(
+                owner,
+                -unconfirmedTx.balance_change,
+              );
+            }
             await this.transactionService.confirmTransaction(
               unconfirmedTx.txid,
             );
