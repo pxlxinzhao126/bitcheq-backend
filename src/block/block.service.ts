@@ -132,16 +132,16 @@ export class BlockService {
             `Transaction ${unconfirmedTx.txid} has ${lookup.confirmations} confirmations`,
           );
 
-          if (lookup.confirmations >= 2) {
+          if (lookup.confirmations >= 1) {
             // only update balance for deposit
             if (unconfirmedTx.balance_change > 0) {
               this.logger.debug(
-                `Confirm transaction ${JSON.stringify(unconfirmedTx)}, deduct pending balance by ${lookup.amounts_received.amount}`,
+                `Confirm transaction ${JSON.stringify(unconfirmedTx)}, deduct pending balance by ${unconfirmedTx.amount_received}`,
               );
               
               await this.updateUserPendingBalance(
                 owner,
-                -lookup.amounts_received.amount,
+                -unconfirmedTx.amount_received,
               );
             }
             await this.transactionService.confirmTransaction(
